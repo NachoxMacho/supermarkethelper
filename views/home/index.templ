@@ -3,6 +3,14 @@ package home
 import "github.com/NachoxMacho/supermarkethelper/types"
 
 templ Index(data []types.ProductItemOutput) {
+    <style type="text/css">
+        body {
+            margin-left: 100px;
+            margin-right: 100px;
+            margin-top: 50px;
+        }
+    </style>
+
     <head>
           <script src="https://unpkg.com/htmx.org@2.0.2"></script>
     </head>
@@ -19,7 +27,7 @@ templ Index(data []types.ProductItemOutput) {
         </form>
 		<table>
 			<thead>
-            <th>ID</th>
+                <th>ID</th>
 				<th>Name</th>
 				<th>Box Price</th>
 				<th>Price Per Item</th>
