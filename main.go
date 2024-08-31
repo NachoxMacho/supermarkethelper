@@ -200,6 +200,14 @@ func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
 			incomingProduct.ItemsPerShelf = itemsPerShelf
 		}
 
+		if u.Get("items_per_box") != "" {
+			itemsPerBox, err := strconv.Atoi(u.Get("items_per_box"))
+			if err != nil {
+				return err
+			}
+			incomingProduct.ItemsPerBox = itemsPerBox
+		}
+
 		if u.Get("shelves_in_store") != "" {
 			shelvesInStore, err := strconv.Atoi(u.Get("shelves_in_store"))
 			if err != nil {
