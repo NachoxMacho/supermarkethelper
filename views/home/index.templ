@@ -42,11 +42,11 @@ templ Index(data []types.ProductItemOutput) {
 					<tr>
 						<td>{ p.ID }</td>
 						<td>{ p.Name }</td>
-						<td>{ p.BoxPrice }</td>
+						<td><input value={ p.BoxPrice }></input></td>
 						<td>{ p.PricePerItem }</td>
 						<td>{ p.BoxesPerShelf }</td>
-						<td>{ p.ItemsPerShelf }</td>
-						<td>{ p.ShelvesInStore }</td>
+						<td><input value={ p.ItemsPerShelf }></input></td>
+						<td><input value={ p.ShelvesInStore }></input></td>
 						<td>{ p.StockedAmount }</td>
 						<td>{ p.SalePrice }</td>
 					</tr>
