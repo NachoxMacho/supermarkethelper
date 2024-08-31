@@ -40,6 +40,52 @@ func GetProducts(w http.ResponseWriter, r *http.Request) error {
 		sortType = "id"
 	}
 
+
+	fmt.Println("descendingOrder", descendingOrder, "sortType", sortType)
+
+	switch sortType {
+	case "id":
+		sort.SliceStable(products, func(i, j int) bool {
+			return products[i].ID > products[j].ID != descendingOrder
+		})
+	case "name":
+		sort.SliceStable(products, func(i, j int) bool {
+			return strings.ToLower(products[i].Name) > strings.ToLower(products[j].Name) != descendingOrder
+		})
+	case "category":
+		sort.SliceStable(products, func(i, j int) bool {
+			return strings.ToLower(products[i].Category) > strings.ToLower(products[j].Category) != descendingOrder
+		})
+	case "box_price":
+		sort.SliceStable(products, func(i, j int) bool {
+			return products[i].BoxPrice > products[j].BoxPrice != descendingOrder
+		})
+	case "price_per_item":
+		sort.SliceStable(products, func(i, j int) bool {
+			return GetMarketPrice(products[i]) > GetMarketPrice(products[j]) != descendingOrder
+		})
+	case "boxes_per_shelf":
+		sort.SliceStable(products, func(i, j int) bool {
+			return GetBoxesPerShelf(products[i]) > GetBoxesPerShelf(products[j]) != descendingOrder
+		})
+	case "items_per_shelf":
+		sort.SliceStable(products, func(i, j int) bool {
+			return products[i].ItemsPerShelf > products[j].ItemsPerShelf != descendingOrder
+		})
+	case "shelves_in_store":
+		sort.SliceStable(products, func(i, j int) bool {
+			return products[i].ShelvesInStore > products[j].ShelvesInStore != descendingOrder
+		})
+	case "stocked_amount":
+		sort.SliceStable(products, func(i, j int) bool {
+			return GetTotalInventory(products[i]) > GetTotalInventory(products[j]) != descendingOrder
+		})
+	case "sale_price":
+		sort.SliceStable(products, func(i, j int) bool {
+			return GetSalePrice(products[i]) > GetSalePrice(products[j]) != descendingOrder
+		})
+	}
+
 	formattedProducts := make([]types.ProductItemOutput, len(products))
 
 	for i, p := range products {
@@ -48,52 +94,6 @@ func GetProducts(w http.ResponseWriter, r *http.Request) error {
 		}
 		formattedProducts[i] = FormatProduct(p)
 	}
-
-	fmt.Println("descendingOrder", descendingOrder, "sortType", sortType)
-
-	switch sortType {
-	case "id":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].ID > formattedProducts[j].ID != descendingOrder
-		})
-	case "name":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return strings.ToLower(formattedProducts[i].Name) > strings.ToLower(formattedProducts[j].Name) != descendingOrder
-		})
-	case "category":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return strings.ToLower(formattedProducts[i].Category) > strings.ToLower(formattedProducts[j].Category) != descendingOrder
-		})
-	case "box_price":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].BoxPrice > formattedProducts[j].BoxPrice != descendingOrder
-		})
-	case "price_per_item":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].PricePerItem > formattedProducts[j].PricePerItem != descendingOrder
-		})
-	case "boxes_per_shelf":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].BoxesPerShelf > formattedProducts[j].BoxesPerShelf != descendingOrder
-		})
-	case "items_per_shelf":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].ItemsPerShelf > formattedProducts[j].ItemsPerShelf != descendingOrder
-		})
-	case "shelves_in_store":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].ShelvesInStore > formattedProducts[j].ShelvesInStore != descendingOrder
-		})
-	case "stocked_amount":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].StockedAmount > formattedProducts[j].StockedAmount != descendingOrder
-		})
-	case "sale_price":
-		sort.SliceStable(formattedProducts, func(i, j int) bool {
-			return formattedProducts[i].SalePrice > formattedProducts[j].SalePrice != descendingOrder
-		})
-	}
-
 
 	return home.Index(formattedProducts, GetCategories(products), descendingOrder, sortType).Render(context.TODO(), w)
 }
@@ -129,8 +129,8 @@ func RoundToPrecision(f float64, precision float64) float64 {
 	return math.Ceil(f/precision) * precision
 }
 
-func GetSalePrice(marketPrice float64, mult float64) float64 {
-	return RoundToPrecision(marketPrice*mult, 0.25)
+func GetSalePrice(p types.ProductItem) float64 {
+	return RoundToPrecision(GetMarketPrice(p)*1.45, 0.25)
 }
 
 func GetCategories(products []types.ProductItem) []string {
@@ -478,7 +478,7 @@ func FormatProduct(p types.ProductItem) types.ProductItemOutput {
 	fp.BoxesPerShelf = fmt.Sprintf("%.2f", GetBoxesPerShelf(p))
 	fp.ShelvesInStore = fmt.Sprintf("%d", p.ShelvesInStore)
 	fp.StockedAmount = fmt.Sprintf("%d", GetTotalInventory(p))
-	fp.SalePrice = fmt.Sprintf("%.2f", GetSalePrice(GetMarketPrice(p), 1.45))
+	fp.SalePrice = fmt.Sprintf("%.2f", GetSalePrice(p))
 
 	return fp
 }
