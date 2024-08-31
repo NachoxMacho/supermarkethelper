@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "templ generate && go build -tags dev -o ./tmp/main ."
+  cmd = "tailwindcss -i views/css/styles.css -o public/styles.css && templ generate && go build -tags dev -o ./tmp/main ."
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules"]
   exclude_file = []

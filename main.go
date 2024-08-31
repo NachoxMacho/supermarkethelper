@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,13 +10,17 @@ import (
 	"log/slog"
 	"math"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/NachoxMacho/supermarkethelper/database"
 	"github.com/NachoxMacho/supermarkethelper/types"
 	"github.com/NachoxMacho/supermarkethelper/views/home"
 )
 
+//go:embed public
+var FS embed.FS
 
 func GetProducts(w http.ResponseWriter, r *http.Request) error {
 
@@ -170,6 +175,7 @@ func main() {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
 
 	mux := http.NewServeMux()
+	mux.Handle("GET /public/*", http.StripPrefix("/", http.FileServerFS(FS)))
 	mux.HandleFunc("GET /", ErrorHandler(Homepage))
 	mux.HandleFunc("GET /products", ErrorHandler(GetProducts))
 	mux.HandleFunc("POST /products", ErrorHandler(AddProduct))
