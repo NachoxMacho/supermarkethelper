@@ -32,3 +32,6 @@ tmp/*
 
 # database ignore
 *.sqlite.db
+
+# generated styles.css
+public/styles.css
