@@ -7,6 +7,16 @@ templ Index(data []types.ProductItemOutput) {
           <script src="https://unpkg.com/htmx.org@2.0.2"></script>
     </head>
 	<body id="body">
+        <form id="product-modifier" hx-post="/products/submit" hx-target="#body">
+            ID<input name="id"></input>
+            Name<input name="name"></input>
+            Box Price<input name="box_price"></input>
+            Items Per Box<input name="items_per_box"></input>
+            Items Per Shelf<input name="items_per_shelf"></input>
+            Shelves in Store<input name="shelves_in_store"></input>
+            Category<input name="category"></input>
+            <button form="product-modifier">Submit</button>
+        </form>
 		<table>
 			<thead>
             <th>ID</th>
