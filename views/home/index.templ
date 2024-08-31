@@ -1,0 +1,36 @@
+package home
+
+import "github.com/NachoxMacho/supermarkethelper/types"
+
+templ Index(data []types.ProductItemOutput) {
+	<body>
+		<table>
+			<thead>
+            <th>ID</th>
+				<th>Name</th>
+				<th>Box Price</th>
+				<th>Price Per Item</th>
+				<th>Boxes Per Shelf</th>
+				<th>Items Per Shelf</th>
+				<th>Shelves in Store</th>
+				<th>Stocked Amount</th>
+                <th>Sale Price</th>
+			</thead>
+			<tbody>
+            for _, p := range data {
+                <tr>
+                    <td>{ p.ID }</td>
+                    <td>{ p.Name }</td>
+                    <td>{ p.BoxPrice }</td>
+                    <td>{ p.PricePerItem }</td>
+                    <td>{ p.BoxesPerShelf }</td>
+                    <td>{ p.ItemsPerShelf }</td>
+                    <td>{ p.ShelvesInStore }</td>
+                    <td>{ p.StockedAmount }</td>
+                    <td>{ p.SalePrice }</td>
+                </tr>
+            }
+            </tbody>
+		</table>
+	</body>
+}
