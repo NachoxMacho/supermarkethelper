@@ -31,4 +31,4 @@ tmp/*
 **_templ.go
 
 # database ignore
-# *.sqlite.db
+*.sqlite.db
