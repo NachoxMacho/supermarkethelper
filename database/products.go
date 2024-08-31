@@ -9,7 +9,7 @@ import (
 func GetAllProducts() ([]types.ProductItem, error) {
 	db := ConnectDB()
 
-	rows, err := db.Query("select * from products;")
+	rows, err := db.Query("select id, name, category, box_price, items_per_box, shelves_in_store, items_per_shelf from products;")
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func AddProduct(p types.ProductItem) error {
 func ModifyProduct(p types.ProductItem) error {
 	db := ConnectDB()
 
-	result, err := db.Exec("update products set name = ?, category = ?, box_price = ?, items_per_box = ?, shelves_in_store = ?, items_per_shelf = ? where id = ? limit 1;",
+	result, err := db.Exec("update products set name = ?, category = ?, box_price = ?, items_per_box = ?, shelves_in_store = ?, items_per_shelf = ? where id = ?;",
 		p.Name,
 		p.Category,
 		fmt.Sprintf("%.2f", p.BoxPrice),

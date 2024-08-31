@@ -214,6 +214,7 @@ func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
 	for i, p := range products {
 		if p.ID == incomingProduct.ID {
 			incomingProduct = MergeProducts(p, incomingProduct)
+			fmt.Printf("Modifying Object %v\n", incomingProduct)
 			database.ModifyProduct(incomingProduct)
 			products[i] = incomingProduct
 			found = true
