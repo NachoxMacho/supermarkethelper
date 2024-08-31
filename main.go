@@ -126,24 +126,7 @@ func ModifyProduct(w http.ResponseWriter, r *http.Request) error {
 
 	for _, p := range products {
 		if p.ID == newProduct.ID {
-			if newProduct.Name == "" {
-				newProduct.Name = p.Name
-			}
-			if newProduct.Category == "" {
-				newProduct.Category = p.Category
-			}
-			if newProduct.BoxPrice == 0 {
-				newProduct.BoxPrice = p.BoxPrice
-			}
-			if newProduct.ItemsPerBox == 0 {
-				newProduct.ItemsPerBox = p.ItemsPerBox
-			}
-			if newProduct.ItemsPerShelf == 0 {
-				newProduct.ItemsPerShelf = p.ItemsPerShelf
-			}
-			if newProduct.ShelvesInStore == 0 {
-				newProduct.ShelvesInStore = p.ShelvesInStore
-			}
+			newProduct = MergeProducts(p, newProduct)
 			break
 		}
 	}
@@ -219,7 +202,7 @@ func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
 		incomingProduct.Category = u.Get("category")
 	}
 
-	fmt.Println("Created Object %v", incomingProduct)
+	fmt.Printf("Created Object %v\n", incomingProduct)
 
 	products, err := database.GetAllProducts()
 	if err != nil {
@@ -230,24 +213,7 @@ func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
 
 	for i, p := range products {
 		if p.ID == incomingProduct.ID {
-			if incomingProduct.Name == "" {
-				incomingProduct.Name = p.Name
-			}
-			if incomingProduct.Category == "" {
-				incomingProduct.Category = p.Category
-			}
-			if incomingProduct.BoxPrice == 0 {
-				incomingProduct.BoxPrice = p.BoxPrice
-			}
-			if incomingProduct.ItemsPerBox == 0 {
-				incomingProduct.ItemsPerBox = p.ItemsPerBox
-			}
-			if incomingProduct.ItemsPerShelf == 0 {
-				incomingProduct.ItemsPerShelf = p.ItemsPerShelf
-			}
-			if incomingProduct.ShelvesInStore == 0 {
-				incomingProduct.ShelvesInStore = p.ShelvesInStore
-			}
+			incomingProduct = MergeProducts(p, incomingProduct)
 			database.ModifyProduct(incomingProduct)
 			products[i] = incomingProduct
 			found = true
@@ -255,7 +221,7 @@ func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	if !found {
+	if !found && incomingProduct.ID != 0 {
 		database.AddProduct(incomingProduct)
 		products = append(products, incomingProduct)
 	}
@@ -263,20 +229,50 @@ func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
 	formattedProducts := make([]types.ProductItemOutput, len(products))
 
 	for i, p := range products {
-		formattedProducts[i].ID = fmt.Sprintf("%d", p.ID)
-		formattedProducts[i].BoxPrice = fmt.Sprintf("%.2f", p.BoxPrice)
-		formattedProducts[i].Name = p.Name
-		formattedProducts[i].ItemsPerShelf = fmt.Sprintf("%d", p.ItemsPerShelf)
-		formattedProducts[i].PricePerItem = fmt.Sprintf("%.2f", GetMarketPrice(p))
-		formattedProducts[i].Category = p.Category
-		formattedProducts[i].ItemsPerBox = fmt.Sprintf("%d", p.ItemsPerBox)
-		formattedProducts[i].BoxesPerShelf = fmt.Sprintf("%.2f", GetBoxesPerShelf(p))
-		formattedProducts[i].ShelvesInStore = fmt.Sprintf("%d", p.ShelvesInStore)
-		formattedProducts[i].StockedAmount = fmt.Sprintf("%d", GetTotalInventory(p))
-		formattedProducts[i].SalePrice = fmt.Sprintf("%.2f", GetSalePrice(GetMarketPrice(p), 1.45))
+		if p.ID == 0 { continue }
+		formattedProducts[i] = FormatProduct(p)
 	}
 
 	return home.Index(formattedProducts).Render(context.TODO(), w)
+}
+
+func MergeProducts(base types.ProductItem, override types.ProductItem) types.ProductItem {
+	if override.Name != "" {
+		base.Name = override.Name
+	}
+	if override.Category != "" {
+		base.Category = override.Category
+	}
+	if override.BoxPrice != 0 {
+		base.BoxPrice = override.BoxPrice
+	}
+	if override.ItemsPerBox != 0 {
+		base.ItemsPerBox = override.ItemsPerBox
+	}
+	if override.ItemsPerShelf != 0 {
+		base.ItemsPerShelf = override.ItemsPerShelf
+	}
+	if override.ShelvesInStore != 0 {
+		base.ShelvesInStore = override.ShelvesInStore
+	}
+	return base
+}
+
+func FormatProduct(p types.ProductItem) types.ProductItemOutput {
+	fp := types.ProductItemOutput{}
+	fp.ID = fmt.Sprintf("%d", p.ID)
+	fp.BoxPrice = fmt.Sprintf("%.2f", p.BoxPrice)
+	fp.Name = p.Name
+	fp.ItemsPerShelf = fmt.Sprintf("%d", p.ItemsPerShelf)
+	fp.PricePerItem = fmt.Sprintf("%.2f", GetMarketPrice(p))
+	fp.Category = p.Category
+	fp.ItemsPerBox = fmt.Sprintf("%d", p.ItemsPerBox)
+	fp.BoxesPerShelf = fmt.Sprintf("%.2f", GetBoxesPerShelf(p))
+	fp.ShelvesInStore = fmt.Sprintf("%d", p.ShelvesInStore)
+	fp.StockedAmount = fmt.Sprintf("%d", GetTotalInventory(p))
+	fp.SalePrice = fmt.Sprintf("%.2f", GetSalePrice(GetMarketPrice(p), 1.45))
+
+	return fp
 }
 
 type httpFunc func(http.ResponseWriter, *http.Request) error
@@ -302,17 +298,8 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 	formattedProducts := make([]types.ProductItemOutput, len(products))
 
 	for i, p := range products {
-		formattedProducts[i].ID = fmt.Sprintf("%d", p.ID)
-		formattedProducts[i].BoxPrice = fmt.Sprintf("%.2f", p.BoxPrice)
-		formattedProducts[i].Name = p.Name
-		formattedProducts[i].ItemsPerShelf = fmt.Sprintf("%d", p.ItemsPerShelf)
-		formattedProducts[i].PricePerItem = fmt.Sprintf("%.2f", GetMarketPrice(p))
-		formattedProducts[i].Category = p.Category
-		formattedProducts[i].ItemsPerBox = fmt.Sprintf("%d", p.ItemsPerBox)
-		formattedProducts[i].BoxesPerShelf = fmt.Sprintf("%.2f", GetBoxesPerShelf(p))
-		formattedProducts[i].ShelvesInStore = fmt.Sprintf("%d", p.ShelvesInStore)
-		formattedProducts[i].StockedAmount = fmt.Sprintf("%d", GetTotalInventory(p))
-		formattedProducts[i].SalePrice = fmt.Sprintf("%.2f", GetSalePrice(GetMarketPrice(p), 1.45))
+		if p.ID == 0 { continue }
+		formattedProducts[i] = FormatProduct(p)
 	}
 
 	return home.Index(formattedProducts).Render(context.TODO(), w)

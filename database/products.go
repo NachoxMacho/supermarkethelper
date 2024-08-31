@@ -22,6 +22,7 @@ func GetAllProducts() ([]types.ProductItem, error) {
 		if err != nil {
 			return nil, err
 		}
+		if p.ID == 0 { continue }
 		products = append(products, p)
 	}
 
