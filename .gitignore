@@ -27,5 +27,8 @@ go.work.sum
 # air
 tmp/*
 
+# templ generated files
+**_templ.go
+
 # database ignore
 *.sqlite.db
