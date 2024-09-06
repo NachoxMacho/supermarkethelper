@@ -129,13 +129,33 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 			</tbody>
 		</table>
 		<form id="product-modifier" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
-			<label>ID</label><input name="id"/>
-			Name<input name="name"/>
-			Box Price<input name="box_price"/>
-			Items Per Box<input name="items_per_box"/>
-			Items Per Shelf<input name="items_per_shelf"/>
-			Shelves in Store<input name="shelves_in_store"/>
-			Category<input name="category"/>
+			<div id="productEntry">
+				<label>ID</label>
+				<input name="id"/>
+			</div>
+			<div id="productEntry">
+				<label>Name</label>
+				<input name="name"/>
+			</div>
+			<div id="productEntry">
+				<label>Box Price</label>
+				<input name="box_price"/>
+			</div>
+			<div id="productEntry">
+				<label>Items Per Box</label>
+				<input name="items_per_box"/>
+			</div>
+			<div id="productEntry">
+				<label>Items Per Shelf</label>
+				<input name="items_per_shelf"/>
+			</div>
+			<div id="productEntry">
+				<label>Shelves in Store</label>
+				<input name="shelves_in_store"/>
+			</div>
+			<div id="productEntry">
+				Category<input name="category"/>
+			</div>
 			<button form="product-modifier">Submit</button>
 		</form>
 	</body>
