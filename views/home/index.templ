@@ -128,7 +128,7 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 				}
 			</tbody>
 		</table>
-		<form id="product-modifier" class="grid grid-cols2 gap-2" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
+		<form id="product-modifier" class="grid grid-cols2 gap-1" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
 			<div id="productEntry" class="flex">
 				<label class="flex-1">ID</label>
 				<input class="flex-auto" name="id"/>
@@ -159,8 +159,10 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 			</div>
 			<div id="productEntrySubmittion">
 			</div>
+			<div class="flex justify-end">
+				<button form="product-modifier">Submit</button>
+			</div>
 		</form>
-		<button form="product-modifier" form="product-modifier">Submit</button>
 	</body>
 }
 
