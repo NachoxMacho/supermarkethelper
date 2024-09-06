@@ -8,127 +8,131 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 		<link rel="stylesheet" href="/public/styles.css"/>
 		<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 	</head>
-	<body id="body" class="productForm">
-		<table id="product-table">
-			<thead>
-				<th
-					if descending || sortType != "id" {
-						hx-get="/products?sort=id&order=asc"
-					} else {
-                        hx-get="/products?sort=id&order=desc"
+	<body id="body">
+		<img class="banner" src="/public/images/base/SMT-Banner.webp" alt="Aaron said fuck you!">
+		<div class="productTable">
+			<table id="product-table">
+				<thead>
+					<th
+						if descending || sortType != "id" {
+							hx-get="/products?sort=id&order=asc"
+						} else {
+        	                hx-get="/products?sort=id&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+					>ID</th>
+					<th
+						if descending || sortType != "name" {
+							hx-get="/products?name=id&order=asc"
+						} else {
+        	                hx-get="/products?name=id&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Name</th>
+					<th
+						if descending || sortType != "category" {
+							hx-get="/products?sort=category&order=asc"
+						} else {
+        	                hx-get="/products?sort=category&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Category</th>
+					<th
+						if descending || sortType != "box_price" {
+							hx-get="/products?sort=box_price&order=asc"
+						} else {
+        	                hx-get="/products?sort=box_price&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Box Price</th>
+					<th
+						if descending || sortType != "price_per_item" {
+							hx-get="/products?sort=price_per_item&order=asc"
+						} else {
+        	                hx-get="/products?sort=price_per_item&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Price Per Item</th>
+					<th
+						if descending || sortType != "boxes_per_shelf" {
+							hx-get="/products?sort=boxes_per_shelf&order=asc"
+						} else {
+        	                hx-get="/products?sort=boxes_per_shelf&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Boxes Per Shelf</th>
+					<th
+						if descending || sortType != "items_per_shelf" {
+							hx-get="/products?sort=items_per_shelf&order=asc"
+						} else {
+        	                hx-get="/products?sort=items_per_shelf&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Items Per Shelf</th>
+					<th
+						if descending || sortType != "shelves_in_store" {
+							hx-get="/products?sort=shelves_in_store&order=asc"
+						} else {
+        	                hx-get="/products?sort=shelves_in_store&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Shelves in Store</th>
+					<th
+						if descending || sortType != "stocked_amount" {
+							hx-get="/products?sort=stocked_amount&order=asc"
+						} else {
+        	                hx-get="/products?sort=stocked_amount&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Stocked Amount</th>
+					<th
+						if descending || sortType != "sale_price" {
+							hx-get="/products?sort=sale_price&order=asc"
+						} else {
+        	                hx-get="/products?sort=sale_price&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+        	        >Sale Price</th>
+				</thead>
+				<tbody id="product-table-body">
+					for _, p := range data {
+						@Row(p, categories)
 					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-				>ID</th>
-				<th
-					if descending || sortType != "name" {
-						hx-get="/products?name=id&order=asc"
-					} else {
-                        hx-get="/products?name=id&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Name</th>
-				<th
-					if descending || sortType != "category" {
-						hx-get="/products?sort=category&order=asc"
-					} else {
-                        hx-get="/products?sort=category&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Category</th>
-				<th
-					if descending || sortType != "box_price" {
-						hx-get="/products?sort=box_price&order=asc"
-					} else {
-                        hx-get="/products?sort=box_price&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Box Price</th>
-				<th
-					if descending || sortType != "price_per_item" {
-						hx-get="/products?sort=price_per_item&order=asc"
-					} else {
-                        hx-get="/products?sort=price_per_item&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Price Per Item</th>
-				<th
-					if descending || sortType != "boxes_per_shelf" {
-						hx-get="/products?sort=boxes_per_shelf&order=asc"
-					} else {
-                        hx-get="/products?sort=boxes_per_shelf&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Boxes Per Shelf</th>
-				<th
-					if descending || sortType != "items_per_shelf" {
-						hx-get="/products?sort=items_per_shelf&order=asc"
-					} else {
-                        hx-get="/products?sort=items_per_shelf&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Items Per Shelf</th>
-				<th
-					if descending || sortType != "shelves_in_store" {
-						hx-get="/products?sort=shelves_in_store&order=asc"
-					} else {
-                        hx-get="/products?sort=shelves_in_store&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Shelves in Store</th>
-				<th
-					if descending || sortType != "stocked_amount" {
-						hx-get="/products?sort=stocked_amount&order=asc"
-					} else {
-                        hx-get="/products?sort=stocked_amount&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Stocked Amount</th>
-				<th
-					if descending || sortType != "sale_price" {
-						hx-get="/products?sort=sale_price&order=asc"
-					} else {
-                        hx-get="/products?sort=sale_price&order=desc"
-					}
-					hx-swap="outerHTML"
-					hx-target="#product-table"
-					hx-trigger="click"
-					hx-select="#product-table"
-                >Sale Price</th>
-			</thead>
-			<tbody id="product-table-body">
-				for _, p := range data {
-					@Row(p, categories)
-				}
-			</tbody>
-		</table>
+				</tbody>
+			</table>
+		</div>
 		<form id="product-modifier" class="grid grid-cols2 gap-1" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
+			<h1>Product Entry</h1>
 			<div id="productEntry" class="flex">
 				<label class="flex-1">ID</label>
 				<input class="flex-auto" name="id"/>
@@ -157,10 +161,8 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 				<label class="flex-1">Category</label>
 				<input class="flex-auto" name="category"/>
 			</div>
-			<div id="productEntrySubmittion">
-			</div>
-			<div class="flex justify-end">
-				<button form="product-modifier">Submit</button>
+			<div id="productEntry" class="flex justify-end">
+				<button form="product-modifier" class="bg-blue-100">Submit</button>
 			</div>
 		</form>
 	</body>
@@ -169,9 +171,22 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 templ Row(p types.ProductItemOutput, categories []string) {
 	<tr id={ fmt.Sprintf("row%s", p.ID) }>
 		<td>{ p.ID }</td>
-		<td><input hx-trigger="input changed delay:1000ms, search" hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } hx-swap="outerHTML" hx-target={ fmt.Sprintf("#row%s", p.ID) } name="name" value={ p.Name }/></td>
 		<td>
-			<select hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } hx-swap="outerHTML" hx-target={ fmt.Sprintf("#row%s", p.ID) } name="category">
+			<input 
+				hx-trigger="input changed delay:1000ms, search" 
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } 
+				hx-swap="outerHTML" 
+				hx-target={ fmt.Sprintf("#row%s", p.ID) } 
+				name="name" 
+				value={ p.Name }
+			/>
+		</td>
+		<td>
+			<select 
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } 
+				hx-swap="outerHTML" 
+				hx-target={ fmt.Sprintf("#row%s", p.ID) } 
+				name="category">
 				<optgroup>
 					for _, c := range categories {
 						if p.Category == c {
@@ -183,11 +198,38 @@ templ Row(p types.ProductItemOutput, categories []string) {
 				</optgroup>
 			</select>
 		</td>
-		<td><input hx-trigger="input changed delay:500ms, search" hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } hx-swap="outerHTML" hx-target={ fmt.Sprintf("#row%s", p.ID) } name="box_price" value={ p.BoxPrice }/></td>
+		<td>
+			<input 
+				hx-trigger="input changed delay:500ms, search" 
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } 
+				hx-swap="outerHTML" 
+				hx-target={ fmt.Sprintf("#row%s", p.ID) } 
+				name="box_price" 
+				value={ p.BoxPrice }
+			/>
+		</td>
 		<td>{ p.PricePerItem }</td>
 		<td>{ p.BoxesPerShelf }</td>
-		<td><input hx-trigger="input changed delay:500ms, search" hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } hx-swap="outerHTML" hx-target={ fmt.Sprintf("#row%s", p.ID) } name="items_per_shelf" value={ p.ItemsPerShelf }/></td>
-		<td><input hx-trigger="input changed delay:500ms, search" hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } hx-swap="outerHTML" hx-target={ fmt.Sprintf("#row%s", p.ID) } name="shelves_in_store" value={ p.ShelvesInStore }/></td>
+		<td>
+			<input 
+				hx-trigger="input changed delay:500ms, search" 
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } 
+				hx-swap="outerHTML" 
+				hx-target={ fmt.Sprintf("#row%s", p.ID) } 
+				name="items_per_shelf" 
+				value={ p.ItemsPerShelf }
+			/>
+		</td>
+		<td>
+			<input 
+				hx-trigger="input changed delay:500ms, search" 
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) } 
+				hx-swap="outerHTML" 
+				hx-target={ fmt.Sprintf("#row%s", p.ID) } 
+				name="shelves_in_store"
+				value={ p.ShelvesInStore }
+			/>
+		</td>
 		<td>{ p.StockedAmount }</td>
 		<td>{ p.SalePrice }</td>
 	</tr>

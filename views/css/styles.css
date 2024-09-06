@@ -2,20 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    max-width: 1200px;
+.banner {
     margin-left: auto;
     margin-right: auto;
 }
 
-form {
-    min-width: 40%;
-    max-width: 50%;
-    margin: .5em;
-    padding: .5em;
-    overflow: hidden;
+html {
+    background-image: url(/public/images/base/SMT-background.jpg);
+    background-attachment: fixed;
 }
 
-form > button {
-    max-width: 75px;
+.productTable {
+    background-color: aliceblue;
+    opacity: 0.7;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: .5em;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+tr {
+    padding-top: 2px;
+}
+
+td {
+    padding-left: 7px
+}
+
+body > form {
+    background-color: aliceblue;
+    opacity: 0.7;
+    min-width: 10%;
+    max-width: 30%;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px;
+    overflow: hidden;
+    border-radius: 10px;
 }
