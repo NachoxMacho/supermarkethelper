@@ -21,6 +21,8 @@ import (
 	"github.com/NachoxMacho/supermarkethelper/database"
 	"github.com/NachoxMacho/supermarkethelper/types"
 	"github.com/NachoxMacho/supermarkethelper/views/home"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 //go:embed public
@@ -532,5 +534,6 @@ func main() {
 	// mux.HandleFunc("POST /products/:id", ErrorHandler(AddProduct))
 	mux.HandleFunc("PUT /products/{id}/", ErrorHandler(ModifyProduct))
 	mux.HandleFunc("POST /products", ErrorHandler(AddProduct))
+	mux.Handle("GET /metrics", promhttp.Handler())
 	http.ListenAndServe(":42069", mux)
 }
