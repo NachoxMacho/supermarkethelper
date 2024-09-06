@@ -8,10 +8,8 @@ body {
 }
 
 form {
-    margin: 2em;
-    max-width: 100px;
-}
-
-#productEntry {
-    white-space: nowrap;
+    max-width: 50%;
+    padding: 1em;
+    margin: 1em;
+    overflow: hidden;
 }
