@@ -2,3 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+    margin-left: 7.5em;
+    margin-right: 7.5em;
+}
+
+form {
+    margin: 2em;
+    max-width: 100px;
+}

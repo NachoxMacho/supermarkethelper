@@ -9,16 +9,6 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 		<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 	</head>
 	<body id="body" class="productForm">
-		<form id="product-modifier" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
-			ID<input name="id"/>
-			Name<input name="name"/>
-			Box Price<input name="box_price"/>
-			Items Per Box<input name="items_per_box"/>
-			Items Per Shelf<input name="items_per_shelf"/>
-			Shelves in Store<input name="shelves_in_store"/>
-			Category<input name="category"/>
-			<button form="product-modifier">Submit</button>
-		</form>
 		<table id="product-table">
 			<thead>
 				<th
@@ -138,6 +128,16 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 				}
 			</tbody>
 		</table>
+		<form id="product-modifier" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
+			<label>ID</label><input name="id"/>
+			Name<input name="name"/>
+			Box Price<input name="box_price"/>
+			Items Per Box<input name="items_per_box"/>
+			Items Per Shelf<input name="items_per_shelf"/>
+			Shelves in Store<input name="shelves_in_store"/>
+			Category<input name="category"/>
+			<button form="product-modifier">Submit</button>
+		</form>
 	</body>
 }
 
