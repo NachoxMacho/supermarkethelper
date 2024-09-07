@@ -57,6 +57,10 @@ func GetProducts(w http.ResponseWriter, r *http.Request) error {
 		sort.SliceStable(products, func(i, j int) bool {
 			return GetMarketPrice(products[i]) > GetMarketPrice(products[j]) != descendingOrder
 		})
+	case "items_per_box":
+		sort.SliceStable(products, func(i, j int) bool {
+			return products[i].ItemsPerBox > products[j].ItemsPerBox != descendingOrder
+		})
 	case "boxes_per_shelf":
 		sort.SliceStable(products, func(i, j int) bool {
 			return GetBoxesPerShelf(products[i]) > GetBoxesPerShelf(products[j]) != descendingOrder
