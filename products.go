@@ -222,7 +222,11 @@ func AddProduct(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	database.AddProduct(newProduct)
+	err = database.AddProduct(newProduct)
+	if err != nil {
+		return err
+	}
+	products = append(products, newProduct)
 
 	formattedProducts := make([]types.ProductItemOutput, len(products))
 
@@ -418,7 +422,10 @@ func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if !found && incomingProduct.ID != 0 {
-		database.AddProduct(incomingProduct)
+		err = database.AddProduct(incomingProduct)
+		if err != nil {
+			return err
+		}
 		products = append(products, incomingProduct)
 	}
 
