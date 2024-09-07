@@ -23,7 +23,6 @@ func ErrorHandler(handler httpFunc) func(http.ResponseWriter, *http.Request) {
 		err := handler(w, r)
 		if err != nil {
 			slog.Error("dum dum error", "err", err.Error())
-			w.WriteHeader(500)
 			fmt.Fprintf(w, "Internal Server Error %s", err)
 		}
 	}
