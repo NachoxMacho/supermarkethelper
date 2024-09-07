@@ -35,3 +35,5 @@ tmp/*
 
 # generated styles.css
 public/styles.css
+
+node_modules/*
