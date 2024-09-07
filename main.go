@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	"github.com/NachoxMacho/supermarkethelper/database"
 )
 
@@ -28,7 +30,16 @@ func ErrorHandler(handler httpFunc) func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	err := database.Initialize()
+
+	err := godotenv.Load()
+	if err != nil {
+		slog.Warn("Error loading environment file(s).", slog.String("err", err.Error()))
+	}
+
+	dbPath := os.Getenv("DB_PATH")
+	dbDriver := os.Getenv("DB_DRIVER")
+
+	err = database.Initialize(dbDriver, dbPath)
 	if err != nil {
 		log.Fatal("Database failed to initialize: " + err.Error())
 	}

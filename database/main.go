@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
+	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
@@ -13,14 +14,20 @@ import (
 )
 
 
-func Initialize() error {
+func Initialize(driverName string, path string) error {
 
-	log.Println("Initializing database")
+	slog.Info("Initializing database", slog.String("driver", driverName), slog.String("path", path))
 
-	db, err := sql.Open("sqlite", "products.sqlite.db")
+	db, err := sql.Open(driverName, path)
 	if err != nil {
 		return err
 	}
+
+	err = db.Ping()
+	if err != nil {
+		return err
+	}
+
 	persistentDB = db
 
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})

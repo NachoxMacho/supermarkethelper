@@ -1,0 +1,35 @@
+services:
+  supermarkethelper:
+    build:
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./sqlite.db:/app/products.sqlite.db
+    develop:
+      watch:
+        - action: rebuild
+          path: ./
+          ignore:
+            - "sqlite.db"
+    ports:
+      - 42069:42069
+    environment:
+      REDIS_URL: redis://redis:6379
+      DB_DRIVER: sqlite
+      # Make sure this is the full path to the sqlite fil
+      DB_PATH: /app/products.sqlite.db
+    networks:
+      - supermarkethelper
+    depends_on:
+      - redis
+  redis:
+    image: redis:latest
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    expose:
+      - 6379
+    networks:
+      - supermarkethelper
+networks:
+  supermarkethelper:
+    name: 'supermarkethelper'
+

@@ -5,6 +5,7 @@ go 1.22.5
 require (
 	github.com/a-h/templ v0.2.771
 	github.com/golang-migrate/migrate/v4 v4.17.1
+	github.com/joho/godotenv v1.5.1
 	modernc.org/sqlite v1.32.0
 )
 
