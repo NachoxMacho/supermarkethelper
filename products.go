@@ -178,7 +178,7 @@ func GetCategoryNames() ([]types.CategoryToggleOutput, error) {
 	}
 	list := make([]types.CategoryToggleOutput, 0, len(categories))
 	for _, c := range categories {
-		list = append(list, types.CategoryToggleOutput{Name: c.Name})
+		list = append(list, types.CategoryToggleOutput{Name: c.Name, ID: c.ID})
 	}
 	return list, nil
 }
@@ -208,6 +208,11 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	categoryMap := map[int]database.Category{}
+	for _, c := range categories {
+		categoryMap[c.ID] = c
+	}
+
 	productSpecifics, err := database.GetSessionProductSpecifics()
 	if err != nil {
 		return err
@@ -217,11 +222,12 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	enabledCategoryIDs := make([]int, 0, len(categories))
+	enabledCategories := make([]database.Category, 0, len(categories))
+
 	for _, c := range sessionCategories {
 		if c.SessionID == id {
 			fmt.Println("Found matching Session Category:", c.CategoryID)
-			enabledCategoryIDs = append(enabledCategoryIDs, c.CategoryID)
+			enabledCategories = append(enabledCategories, categoryMap[c.CategoryID] )
 		}
 	}
 
@@ -232,7 +238,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 			continue
 		}
 
-		if slices.Contains(enabledCategoryIDs, p.CategoryID) {
+		if slices.ContainsFunc(enabledCategories, func(c database.Category) bool { return c.ID == p.CategoryID }) {
 
 			category := ""
 			specifics := database.SessionProductSpecific{}
@@ -271,6 +277,11 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	for i, c := range list {
+		if slices.ContainsFunc(enabledCategories, func(cat database.Category) bool { return cat.ID == c.ID }) {
+			list[i].Selected = true
+		}
+	}
 	return home.Index(id, formattedProducts, list, false, "id").Render(context.TODO(), w)
 }
 

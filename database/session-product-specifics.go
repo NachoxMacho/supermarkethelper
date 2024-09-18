@@ -59,6 +59,5 @@ func SetProductSpecific(sessionID string, productID int, boxPrice string, shelve
 		return err
 	}
 	fmt.Println("affected", ra, "rows")
-
-	return err
+	return nil
 }
