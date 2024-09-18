@@ -14,21 +14,19 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 			<img src="/public/images/base/SMT-Banner.webp" alt="Aaron said fuck you!">
 		</div>
 		<div class="flex justify-center">
-			<table id="product-table">
+			<table id="product-table" class="text-left w-9/12">
 				<thead>
-					<div class="">
-						<th
-							if descending || sortType != "name" {
-								hx-get="/products?name=id&order=asc"
-							} else {
-								hx-get="/products?name=id&order=desc"
-							}
-							hx-swap="outerHTML"
-							hx-target="#product-table"
-							hx-trigger="click"
-							hx-select="#product-table"
-						>Name</th>
-					</div>
+					<th
+						if descending || sortType != "name" {
+							hx-get="/products?name=id&order=asc"
+						} else {
+							hx-get="/products?name=id&order=desc"
+						}
+						hx-swap="outerHTML"
+						hx-target="#product-table"
+						hx-trigger="click"
+						hx-select="#product-table"
+					>Name</th>
 					<th
 						if descending || sortType != "category" {
 							hx-get="/products?sort=category&order=asc"
@@ -170,79 +168,82 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 }
 
 templ Row(p types.ProductItemOutput, categories []string) {
-	<div class="">
-		<tr id={ fmt.Sprintf("row%s", p.ID) }>
-			<td>
-				<input
-					hx-trigger="input changed delay:1000ms, search"
-					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-					hx-swap="outerHTML"
-					hx-target={ fmt.Sprintf("#row%s", p.ID) }
-					name="name"
-					value={ p.Name }
-				/>
-			</td>
-			<td>
-				<select
-					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-					hx-swap="outerHTML"
-					hx-target={ fmt.Sprintf("#row%s", p.ID) }
-					name="category">
-					<optgroup>
-						for _, c := range categories {
-							if p.Category == c {
-								<option selected="selected" value={ c }>{ c }</option>
-							} else {
-								<option value={ c }>{ c }</option>
-							}
+	<tr id={ fmt.Sprintf("row%s", p.ID) } class="border-b">
+		<td>
+			<input
+				class="w-40 min-w-40 max-w-52"
+				hx-trigger="input changed delay:1000ms, search"
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-swap="outerHTML"
+				hx-target={ fmt.Sprintf("#row%s", p.ID) }
+				name="name"
+				value={ p.Name }
+			/>
+		</td>
+		<td>
+			<select
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-swap="outerHTML"
+				hx-target={ fmt.Sprintf("#row%s", p.ID) }
+				name="category">
+				<optgroup>
+					for _, c := range categories {
+						if p.Category == c {
+							<option selected="selected" value={ c }>{ c }</option>
+						} else {
+							<option value={ c }>{ c }</option>
 						}
-					</optgroup>
-				</select>
-			</td>
-			<td>
-				<input
-					hx-trigger="input changed delay:500ms, search"
-					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-					hx-swap="outerHTML"
-					hx-target={ fmt.Sprintf("#row%s", p.ID) }
-					name="box_price"
-					value={ p.BoxPrice }
-				/>
-			</td>
-			<td>
-				<input
-					hx-trigger="input changed delay:500ms, search"
-					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-					hx-swap="outerHTML"
-					hx-target={ fmt.Sprintf("#row%s", p.ID) }
-					name="items_per_box"
-					value={ p.ItemsPerBox }
-				/>
-			</td>
-			<td>{ p.PricePerItem }</td>
-			<td>{ p.BoxesPerShelf }</td>
-			<td>
-				<input
-					hx-trigger="input changed delay:500ms, search"
-					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-					hx-swap="outerHTML"
-					hx-target={ fmt.Sprintf("#row%s", p.ID) }
-					name="items_per_shelf"
-					value={ p.ItemsPerShelf }
-				/>
-			</td>
-			<td>
-				<input
-					hx-trigger="input changed delay:500ms, search"
-					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-					hx-swap="outerHTML"
-					hx-target={ fmt.Sprintf("#row%s", p.ID) }
-					name="shelves_in_store"
-					value={ p.ShelvesInStore }
-				/>
-			</td>
-			<td>{ p.StockedAmount }</td>
-			<td>{ p.SalePrice }</td>
-		</tr>
-	</div>
+					}
+				</optgroup>
+			</select>
+		</td>
+		<td>
+			<input
+				class="w-16 min-w-16 max-w-52"
+				hx-trigger="input changed delay:500ms, search"
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-swap="outerHTML"
+				hx-target={ fmt.Sprintf("#row%s", p.ID) }
+				name="box_price"
+				value={ p.BoxPrice }
+			/>
+		</td>
+		<td>
+			<input
+				class="w-8 min-w-6 max-w-52"
+				hx-trigger="input changed delay:500ms, search"
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-swap="outerHTML"
+				hx-target={ fmt.Sprintf("#row%s", p.ID) }
+				name="items_per_box"
+				value={ p.ItemsPerBox }
+			/>
+		</td>
+		<td>{ p.PricePerItem }</td>
+		<td>{ p.BoxesPerShelf }</td>
+		<td>
+			<input
+				class="w-12 min-w-12 max-w-52"
+				hx-trigger="input changed delay:500ms, search"
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-swap="outerHTML"
+				hx-target={ fmt.Sprintf("#row%s", p.ID) }
+				name="items_per_shelf"
+				value={ p.ItemsPerShelf }
+			/>
+		</td>
+		<td>
+			<input
+				class="w-12 min-w-12 max-w-52"
+				hx-trigger="input changed delay:500ms, search"
+				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-swap="outerHTML"
+				hx-target={ fmt.Sprintf("#row%s", p.ID) }
+				name="shelves_in_store"
+				value={ p.ShelvesInStore }
+			/>
+		</td>
+		<td>{ p.StockedAmount }</td>
+		<td>{ p.SalePrice }</td>
+	</tr>
 }
