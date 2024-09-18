@@ -38,4 +38,4 @@ public/styles.css
 
 node_modules/*
 
-products.sqlite.db
+*.sqlite.db
