@@ -7,34 +7,28 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 	<head>
 		<link rel="stylesheet" href="/public/styles.css"/>
 		<script src="https://unpkg.com/htmx.org@2.0.2"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	</head>
 	<body id="body">
-		<img class="banner" src="/public/images/base/SMT-Banner.webp" alt="Aaron said fuck you!">
-		<div class="productTable">
+		<div class="flex justify-center">
+			<img src="/public/images/base/SMT-Banner.webp" alt="Aaron said fuck you!">
+		</div>
+		<div class="flex justify-center">
 			<table id="product-table">
 				<thead>
-					<th
-						if descending || sortType != "id" {
-							hx-get="/products?sort=id&order=asc"
-						} else {
-        	                hx-get="/products?sort=id&order=desc"
-						}
-						hx-swap="outerHTML"
-						hx-target="#product-table"
-						hx-trigger="click"
-						hx-select="#product-table"
-					>ID</th>
-					<th
-						if descending || sortType != "name" {
-							hx-get="/products?name=id&order=asc"
-						} else {
-        	                hx-get="/products?name=id&order=desc"
-						}
-						hx-swap="outerHTML"
-						hx-target="#product-table"
-						hx-trigger="click"
-						hx-select="#product-table"
-        	        >Name</th>
+					<div class="">
+						<th
+							if descending || sortType != "name" {
+								hx-get="/products?name=id&order=asc"
+							} else {
+								hx-get="/products?name=id&order=desc"
+							}
+							hx-swap="outerHTML"
+							hx-target="#product-table"
+							hx-trigger="click"
+							hx-select="#product-table"
+						>Name</th>
+					</div>
 					<th
 						if descending || sortType != "category" {
 							hx-get="/products?sort=category&order=asc"
@@ -142,116 +136,113 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 				</tbody>
 			</table>
 		</div>
-		<form id="product-modifier" class="grid grid-cols2 gap-1" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
+		<form id="product-modifier" hx-post="/products" hx-target="#body" hx-swap="outerHTML">
 			<h1>Product Entry</h1>
-			<div id="productEntry" class="flex">
-				<label class="flex-1">ID</label>
-				<input class="flex-auto" name="id"/>
+			<div id="productEntry">
+				<label>Name</label>
+				<input name="name"/>
 			</div>
-			<div id="productEntry" class="flex">
-				<label class="flex-1">Name</label>
-				<input class="flex-auto" name="name"/>
+			<div id="productEntry">
+				<label>Box Price</label>
+				<input name="box_price"/>
 			</div>
-			<div id="productEntry" class="flex">
-				<label class="flex-1">Box Price</label>
-				<input class="flex-auto" name="box_price"/>
+			<div id="productEntry">
+				<label>Items Per Box</label>
+				<input name="items_per_box"/>
 			</div>
-			<div id="productEntry" class="flex">
-				<label class="flex-1">Items Per Box</label>
-				<input class="flex-auto" name="items_per_box"/>
+			<div id="productEntry">
+				<label>Items Per Shelf</label>
+				<input name="items_per_shelf"/>
 			</div>
-			<div id="productEntry" class="flex">
-				<label class="flex-1">Items Per Shelf</label>
-				<input class="flex-auto" name="items_per_shelf"/>
+			<div id="productEntry">
+				<label>Shelves in Store</label>
+				<input name="shelves_in_store"/>
 			</div>
-			<div id="productEntry" class="flex">
-				<label class="flex-1">Shelves in Store</label>
-				<input class="flex-auto" name="shelves_in_store"/>
+			<div id="productEntry">
+				<label>Category</label>
+				<input name="category"/>
 			</div>
-			<div id="productEntry" class="flex">
-				<label class="flex-1">Category</label>
-				<input class="flex-auto" name="category"/>
-			</div>
-			<div id="productEntry" class="flex justify-end">
-				<button form="product-modifier" class="bg-blue-100">Submit</button>
+			<div id="productEntry">
+				<button form="product-modifier">Submit</button>
 			</div>
 		</form>
 	</body>
 }
 
 templ Row(p types.ProductItemOutput, categories []string) {
-	<tr id={ fmt.Sprintf("row%s", p.ID) }>
-		<td>{ p.ID }</td>
-		<td>
-			<input
-				hx-trigger="input changed delay:1000ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="name"
-				value={ p.Name }
-			/>
-		</td>
-		<td>
-			<select
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="category">
-				<optgroup>
-					for _, c := range categories {
-						if p.Category == c {
-							<option selected="selected" value={ c }>{ c }</option>
-						} else {
-							<option value={ c }>{ c }</option>
+	<div class="">
+		<tr id={ fmt.Sprintf("row%s", p.ID) }>
+			<td>
+				<input
+					hx-trigger="input changed delay:1000ms, search"
+					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+					hx-swap="outerHTML"
+					hx-target={ fmt.Sprintf("#row%s", p.ID) }
+					name="name"
+					value={ p.Name }
+				/>
+			</td>
+			<td>
+				<select
+					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+					hx-swap="outerHTML"
+					hx-target={ fmt.Sprintf("#row%s", p.ID) }
+					name="category">
+					<optgroup>
+						for _, c := range categories {
+							if p.Category == c {
+								<option selected="selected" value={ c }>{ c }</option>
+							} else {
+								<option value={ c }>{ c }</option>
+							}
 						}
-					}
-				</optgroup>
-			</select>
-		</td>
-		<td>
-			<input
-				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="box_price"
-				value={ p.BoxPrice }
-			/>
-		</td>
-		<td>
-			<input
-				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="items_per_box"
-				value={ p.ItemsPerBox }
-			/>
-		</td>
-		<td>{ p.PricePerItem }</td>
-		<td>{ p.BoxesPerShelf }</td>
-		<td>
-			<input
-				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="items_per_shelf"
-				value={ p.ItemsPerShelf }
-			/>
-		</td>
-		<td>
-			<input
-				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="shelves_in_store"
-				value={ p.ShelvesInStore }
-			/>
-		</td>
-		<td>{ p.StockedAmount }</td>
-		<td>{ p.SalePrice }</td>
-	</tr>
+					</optgroup>
+				</select>
+			</td>
+			<td>
+				<input
+					hx-trigger="input changed delay:500ms, search"
+					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+					hx-swap="outerHTML"
+					hx-target={ fmt.Sprintf("#row%s", p.ID) }
+					name="box_price"
+					value={ p.BoxPrice }
+				/>
+			</td>
+			<td>
+				<input
+					hx-trigger="input changed delay:500ms, search"
+					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+					hx-swap="outerHTML"
+					hx-target={ fmt.Sprintf("#row%s", p.ID) }
+					name="items_per_box"
+					value={ p.ItemsPerBox }
+				/>
+			</td>
+			<td>{ p.PricePerItem }</td>
+			<td>{ p.BoxesPerShelf }</td>
+			<td>
+				<input
+					hx-trigger="input changed delay:500ms, search"
+					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+					hx-swap="outerHTML"
+					hx-target={ fmt.Sprintf("#row%s", p.ID) }
+					name="items_per_shelf"
+					value={ p.ItemsPerShelf }
+				/>
+			</td>
+			<td>
+				<input
+					hx-trigger="input changed delay:500ms, search"
+					hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+					hx-swap="outerHTML"
+					hx-target={ fmt.Sprintf("#row%s", p.ID) }
+					name="shelves_in_store"
+					value={ p.ShelvesInStore }
+				/>
+			</td>
+			<td>{ p.StockedAmount }</td>
+			<td>{ p.SalePrice }</td>
+		</tr>
+	</div>
 }
