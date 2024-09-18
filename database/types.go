@@ -6,6 +6,8 @@ type Product struct {
 	CategoryID    int
 	ItemsPerBox   int
 	ItemsPerShelf int
+	DefaultBoxPrice float64
+	DefaultShelvesInStore int
 }
 
 type Category struct {

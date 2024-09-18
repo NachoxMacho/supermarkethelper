@@ -15,80 +15,6 @@ import (
 	"github.com/NachoxMacho/supermarkethelper/views/home"
 )
 
-// func GetProducts(w http.ResponseWriter, r *http.Request) error {
-//
-//		products, err := database.GetProducts()
-//		if err != nil {
-//			return err
-//		}
-//
-//		orderPathValue := r.URL.Query().Get("order")
-//		descendingOrder := orderPathValue == "desc"
-//		sortType := r.URL.Query().Get("sort")
-//		if sortType == "" {
-//			sortType = "id"
-//		}
-//
-//		fmt.Println("descendingOrder", descendingOrder, "sortType", sortType)
-//
-//		switch sortType {
-//		case "id":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return products[i].ID > products[j].ID != descendingOrder
-//			})
-//		case "name":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return strings.ToLower(products[i].Name) > strings.ToLower(products[j].Name) != descendingOrder
-//			})
-//		case "category":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return strings.ToLower(products[i].Category) > strings.ToLower(products[j].Category) != descendingOrder
-//			})
-//		case "box_price":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return products[i].BoxPrice > products[j].BoxPrice != descendingOrder
-//			})
-//		case "price_per_item":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return GetMarketPrice(products[i]) > GetMarketPrice(products[j]) != descendingOrder
-//			})
-//		case "items_per_box":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return products[i].ItemsPerBox > products[j].ItemsPerBox != descendingOrder
-//			})
-//		case "boxes_per_shelf":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return GetBoxesPerShelf(products[i]) > GetBoxesPerShelf(products[j]) != descendingOrder
-//			})
-//		case "items_per_shelf":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return products[i].ItemsPerShelf > products[j].ItemsPerShelf != descendingOrder
-//			})
-//		case "shelves_in_store":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return products[i].ShelvesInStore > products[j].ShelvesInStore != descendingOrder
-//			})
-//		case "stocked_amount":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return GetTotalInventory(products[i]) > GetTotalInventory(products[j]) != descendingOrder
-//			})
-//		case "sale_price":
-//			sort.SliceStable(products, func(i, j int) bool {
-//				return GetSalePrice(products[i]) > GetSalePrice(products[j]) != descendingOrder
-//			})
-//		}
-//
-//		formattedProducts := make([]types.ProductItemOutput, len(products))
-//
-//		for i, p := range products {
-//			if p.ID == 0 {
-//				continue
-//			}
-//			formattedProducts[i] = FormatProduct(p)
-//		}
-//
-//		return home.Index(formattedProducts, GetCategories(products), descendingOrder, sortType).Render(context.TODO(), w)
-//	}
 func GetBoxesPerShelf(p types.ProductItem) float64 {
 	return float64(p.ItemsPerShelf) / float64(p.ItemsPerBox)
 }
@@ -127,28 +53,21 @@ func GetCategories(products []types.ProductItem) []string {
 
 func MergeProducts(base types.ProductItem, override types.ProductItem) types.ProductItem {
 	if override.Name != "" {
-		fmt.Println("overriding name with", override.Name)
 		base.Name = override.Name
 	}
 	if override.Category != "" {
-		fmt.Println("overriding category with", override.Category)
 		base.Category = override.Category
 	}
 	if override.BoxPrice != 0 {
-		fmt.Println("overriding box_price with", override.BoxPrice)
 		base.BoxPrice = override.BoxPrice
 	}
 	if override.ItemsPerBox != 0 {
-		fmt.Println("overriding items_per_box with", override.ItemsPerBox)
 		base.ItemsPerBox = override.ItemsPerBox
 	}
 	if override.ItemsPerShelf != 0 {
-		fmt.Println("overriding items_per_shelf with", override.ItemsPerShelf)
 		base.ItemsPerShelf = override.ItemsPerShelf
 	}
-	fmt.Println(override.ShelvesInStore)
 	if override.ShelvesInStore != 0 {
-		fmt.Println("overriding shelves_in_store with", override.ShelvesInStore)
 		base.ShelvesInStore = override.ShelvesInStore
 	}
 	return base
@@ -226,7 +145,6 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 
 	for _, c := range sessionCategories {
 		if c.SessionID == id {
-			fmt.Println("Found matching Session Category:", c.CategoryID)
 			enabledCategories = append(enabledCategories, categoryMap[c.CategoryID] )
 		}
 	}
@@ -256,7 +174,6 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 				}
 			}
 
-			fmt.Println("Found matching Product:", p.Name)
 			newProduct := types.ProductItem{
 				ID:             p.ID,
 				Category:       category,
@@ -266,12 +183,18 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 				BoxPrice:       specifics.BoxPrice,
 				ShelvesInStore: specifics.ShelvesInStore,
 			}
+
+			if newProduct.BoxPrice == 0 {
+				newProduct.BoxPrice = p.DefaultBoxPrice
+			}
+			if newProduct.ShelvesInStore == 0 {
+				newProduct.ShelvesInStore = p.DefaultShelvesInStore
+			}
 			formattedProducts = append(formattedProducts, FormatProduct(newProduct))
 		}
 		// formattedProducts[i] = FormatProduct(p)
 	}
 
-	fmt.Println("Rendering")
 	list, err := GetCategoryNames()
 	if err != nil {
 		return err
@@ -326,8 +249,6 @@ func SetProductSpecific(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	fmt.Println("Processing", r.URL.Path)
-
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
@@ -367,7 +288,6 @@ func SetProductSpecific(w http.ResponseWriter, r *http.Request) error {
 	// boxPrice := r.URL.Query().Get("box_price")
 	// shelvesInStore := r.URL.Query().Get("shelves_in_store")
 	if shelvesInStore == 0 && boxPrice == 0 {
-		fmt.Println("neither box_price nor shelves_in_store")
 		return nil
 	}
 
