@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 
 	"github.com/NachoxMacho/supermarkethelper/database"
 	"github.com/NachoxMacho/supermarkethelper/types"
@@ -291,6 +293,74 @@ func SessionCategory(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println("Adding category", category, "to", id)
 
 	err = database.ToggleSessionCategory(id, category)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SetProductSpecific(w http.ResponseWriter, r *http.Request) error {
+	id := r.PathValue("id")
+	if id == "" {
+		return fmt.Errorf("missing id: %s", r.URL.Path)
+	}
+
+	product := r.PathValue("product")
+	if product == "" {
+		return fmt.Errorf("missing product: %s", r.URL.Path)
+	}
+	productID, err := strconv.Atoi(product)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Processing", r.URL.Path)
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	var boxPrice float64
+	var shelvesInStore int
+	switch r.Header.Get("Content-Type") {
+	case "application/x-www-form-urlencoded":
+		u, err := url.ParseQuery(string(bodyBytes))
+		if err != nil {
+			return err
+		}
+
+		if u.Get("box_price") != "" {
+			boxPrice, err = strconv.ParseFloat(u.Get("box_price"), 64)
+			if err != nil {
+				return err
+			}
+		}
+
+		if u.Get("shelves_in_store") != "" {
+			shelvesInStore, err = strconv.Atoi(u.Get("shelves_in_store"))
+			if err != nil {
+				return err
+			}
+		}
+	// case "application/json":
+	// 	err = json.Unmarshal(bodyBytes, &incomingProduct)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	}
+
+
+	// boxPrice := r.URL.Query().Get("box_price")
+	// shelvesInStore := r.URL.Query().Get("shelves_in_store")
+	if shelvesInStore == 0 && boxPrice == 0 {
+		fmt.Println("neither box_price nor shelves_in_store")
+		return nil
+	}
+
+	err = database.SetProductSpecific(id, productID, fmt.Sprintf("%.2f", boxPrice), fmt.Sprintf("%d", shelvesInStore))
 	if err != nil {
 		return err
 	}

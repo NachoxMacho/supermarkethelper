@@ -135,7 +135,7 @@ templ Index(id string, data []types.ProductItemOutput, categories []types.Catego
 				</thead>
 				<tbody id="product-table-body">
 					for _, p := range data {
-						@Row(p, categories)
+						@Row(id, p, categories)
 					}
 				</tbody>
 			</table>
@@ -174,21 +174,13 @@ templ Index(id string, data []types.ProductItemOutput, categories []types.Catego
 }
 
 templ CategoryToggle(session string, c types.CategoryToggleOutput) {
-    <button hx-put={ fmt.Sprintf("/%s/%s", session, url.QueryEscape(c.Name)) } >{ c.Name }</button>
+    <button hx-put={ fmt.Sprintf("/%s/category/%s", session, url.QueryEscape(c.Name)) } >{ c.Name }</button>
 }
 
-templ Row(p types.ProductItemOutput, categories []types.CategoryToggleOutput) {
+templ Row(session string, p types.ProductItemOutput, categories []types.CategoryToggleOutput) {
 	<tr id={ fmt.Sprintf("row%s", p.ID) } class="border-b">
 		<td>
-			<input
-				class="w-40 min-w-40 max-w-52"
-				hx-trigger="input changed delay:1000ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="name"
-				value={ p.Name }
-			/>
+            { p.Name }
 		</td>
 		<td>
             { p.Category }
@@ -197,7 +189,7 @@ templ Row(p types.ProductItemOutput, categories []types.CategoryToggleOutput) {
 			<input
 				class="w-16 min-w-16 max-w-52"
 				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-put={ string(templ.URL(fmt.Sprintf("/%s/product/%s/set", session, p.ID))) }
 				hx-swap="outerHTML"
 				hx-target={ fmt.Sprintf("#row%s", p.ID) }
 				name="box_price"
@@ -205,34 +197,18 @@ templ Row(p types.ProductItemOutput, categories []types.CategoryToggleOutput) {
 			/>
 		</td>
 		<td>
-			<input
-				class="w-8 min-w-6 max-w-52"
-				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="items_per_box"
-				value={ p.ItemsPerBox }
-			/>
+        { p.ItemsPerBox }
 		</td>
 		<td>{ p.PricePerItem }</td>
 		<td>{ p.BoxesPerShelf }</td>
 		<td>
-			<input
-				class="w-12 min-w-12 max-w-52"
-				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="items_per_shelf"
-				value={ p.ItemsPerShelf }
-			/>
+        { p.ItemsPerShelf }
 		</td>
 		<td>
 			<input
 				class="w-12 min-w-12 max-w-52"
 				hx-trigger="input changed delay:500ms, search"
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
+				hx-put={ string(templ.URL(fmt.Sprintf("/%s/product/%s/set", session, p.ID))) }
 				hx-swap="outerHTML"
 				hx-target={ fmt.Sprintf("#row%s", p.ID) }
 				name="shelves_in_store"

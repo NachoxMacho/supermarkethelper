@@ -1,5 +1,10 @@
 package database
 
+import (
+	"fmt"
+	"slices"
+)
+
 func GetSessionProductSpecifics() ([]SessionProductSpecific, error) {
 	db := ConnectDB()
 
@@ -16,7 +21,9 @@ func GetSessionProductSpecifics() ([]SessionProductSpecific, error) {
 		if err != nil {
 			return nil, err
 		}
-		if c.SessionID == "" || c.ProductID == 0 { continue }
+		if c.SessionID == "" || c.ProductID == 0 {
+			continue
+		}
 		sessionCategories = append(sessionCategories, c)
 	}
 
@@ -25,3 +32,33 @@ func GetSessionProductSpecifics() ([]SessionProductSpecific, error) {
 	return sessionCategories, nil
 }
 
+func SetProductSpecific(sessionID string, productID int, boxPrice string, shelvesInStore string) error {
+
+	sessionProductSpecifics, err := GetSessionProductSpecifics()
+	if err != nil {
+		return err
+	}
+
+	match := slices.ContainsFunc(sessionProductSpecifics, func(s SessionProductSpecific) bool {
+		return s.SessionID == sessionID && s.ProductID == productID
+	})
+
+	db := ConnectDB()
+	if !match {
+		_, err = db.Exec("insert into session_product_specifics values (?, ?, ?, ?)", fmt.Sprintf("%d", productID), sessionID, boxPrice, shelvesInStore)
+		return err
+	}
+
+	r, err := db.Exec("update session_product_specifics set box_price = ?, shelves_in_store = ? where session_id = ? and product_id = ?", boxPrice, shelvesInStore, sessionID, fmt.Sprintf("%d", productID))
+	if err != nil {
+		return err
+	}
+
+	ra, err := r.RowsAffected()
+	if err != nil {
+		return err
+	}
+	fmt.Println("affected", ra, "rows")
+
+	return err
+}
