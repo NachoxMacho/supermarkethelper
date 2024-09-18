@@ -33,14 +33,14 @@ func GetSessionCategories() ([]SessionCategory, error) {
 	return sessionCategories, nil
 }
 
-func AddSessionCategory(session_id string, category string) error {
+func ToggleSessionCategory(sessionID string, category string) error {
 	categories, err := GetCategories()
 	if err != nil {
 		return err
 	}
 	matchingCategoryID := 0
 	for _, c := range categories {
-		if strings.ToLower(c.Name) == strings.ToLower(category) {
+		if strings.EqualFold(c.Name, category) {
 			matchingCategoryID = c.ID
 		}
 	}
@@ -51,14 +51,29 @@ func AddSessionCategory(session_id string, category string) error {
 	}
 
 	match := slices.ContainsFunc(sessionCategories, func(s SessionCategory) bool {
-		return s.SessionID == session_id && s.CategoryID == matchingCategoryID
+		return s.SessionID == sessionID && s.CategoryID == matchingCategoryID
 	})
 
+	db := ConnectDB()
 	if match {
-		return nil
+		fmt.Println("Removing category", matchingCategoryID, "to", sessionID)
+		stmt, err := db.Prepare(`delete from session_categories where session_id = ? and category_id = ? COLLATE NOCASE;`)
+		if err != nil {
+			return err
+		}
+		r, err := stmt.Exec(sessionID, fmt.Sprintf("%d", matchingCategoryID))
+		if err != nil {
+			return err
+		}
+		ra, err := r.RowsAffected()
+		if err != nil {
+			return err
+		}
+		fmt.Println("affected", ra, "rows")
+		return err
 	}
 
-	db := ConnectDB()
-	_, err = db.Exec("insert into session_categories values (?, ?);", session_id, fmt.Sprintf("%d",matchingCategoryID))
+	fmt.Println("Adding category", category, "to", sessionID)
+	_, err = db.Exec("insert into session_categories values (?, ?);", sessionID, fmt.Sprintf("%d", matchingCategoryID))
 	return err
 }

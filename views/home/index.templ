@@ -2,14 +2,20 @@ package home
 
 import "github.com/NachoxMacho/supermarkethelper/types"
 import "fmt"
+import "net/url"
 
-templ Index(data []types.ProductItemOutput, categories []string, descending bool, sortType string) {
+templ Index(id string, data []types.ProductItemOutput, categories []types.CategoryToggleOutput, descending bool, sortType string) {
 	<head>
 		<link rel="stylesheet" href="/public/styles.css"/>
 		<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	</head>
 	<body id="body">
+        <div>
+            for _, c := range categories {
+                @CategoryToggle(id, c)
+            }
+        </div>
 		<div class="flex justify-center">
 			<img src="/public/images/base/SMT-Banner.webp" alt="Aaron said fuck you!">
 		</div>
@@ -167,7 +173,11 @@ templ Index(data []types.ProductItemOutput, categories []string, descending bool
 	</body>
 }
 
-templ Row(p types.ProductItemOutput, categories []string) {
+templ CategoryToggle(session string, c types.CategoryToggleOutput) {
+    <button hx-put={ fmt.Sprintf("/%s/%s", session, url.QueryEscape(c.Name)) } >{ c.Name }</button>
+}
+
+templ Row(p types.ProductItemOutput, categories []types.CategoryToggleOutput) {
 	<tr id={ fmt.Sprintf("row%s", p.ID) } class="border-b">
 		<td>
 			<input
@@ -181,21 +191,7 @@ templ Row(p types.ProductItemOutput, categories []string) {
 			/>
 		</td>
 		<td>
-			<select
-				hx-put={ string(templ.URL(fmt.Sprintf("/products/%s/", p.ID))) }
-				hx-swap="outerHTML"
-				hx-target={ fmt.Sprintf("#row%s", p.ID) }
-				name="category">
-				<optgroup>
-					for _, c := range categories {
-						if p.Category == c {
-							<option selected="selected" value={ c }>{ c }</option>
-						} else {
-							<option value={ c }>{ c }</option>
-						}
-					}
-				</optgroup>
-			</select>
+            { p.Category }
 		</td>
 		<td>
 			<input

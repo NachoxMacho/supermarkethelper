@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/NachoxMacho/supermarkethelper/database"
@@ -168,14 +169,14 @@ func FormatProduct(p types.ProductItem) types.ProductItemOutput {
 	return fp
 }
 
-func GetCategoryNames() ([]string, error) {
+func GetCategoryNames() ([]types.CategoryToggleOutput, error) {
 	categories, err := database.GetCategories()
 	if err != nil {
 		return nil, err
 	}
-	list := make([]string, 0, len(categories))
+	list := make([]types.CategoryToggleOutput, 0, len(categories))
 	for _, c := range categories {
-		list = append(list, c.Name)
+		list = append(list, types.CategoryToggleOutput{Name: c.Name})
 	}
 	return list, nil
 }
@@ -217,6 +218,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 	enabledCategoryIDs := make([]int, 0, len(categories))
 	for _, c := range sessionCategories {
 		if c.SessionID == id {
+			fmt.Println("Found matching Session Category:", c.CategoryID)
 			enabledCategoryIDs = append(enabledCategoryIDs, c.CategoryID)
 		}
 	}
@@ -246,6 +248,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 				}
 			}
 
+			fmt.Println("Found matching Product:", p.Name)
 			newProduct := types.ProductItem{
 				ID:             p.ID,
 				Category:       category,
@@ -266,8 +269,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-
-	return home.Index(formattedProducts, list, false, "id").Render(context.TODO(), w)
+	return home.Index(id, formattedProducts, list, false, "id").Render(context.TODO(), w)
 }
 
 func SessionCategory(w http.ResponseWriter, r *http.Request) error {
@@ -281,10 +283,14 @@ func SessionCategory(w http.ResponseWriter, r *http.Request) error {
 	if category == "" {
 		return fmt.Errorf("missing category: %s", r.URL.Path)
 	}
+	category, err := url.QueryUnescape(category)
+	if err != nil {
+		return fmt.Errorf("failed to unescape category: %w", err)
+	}
 
 	fmt.Println("Adding category", category, "to", id)
 
-	err := database.AddSessionCategory(id, category)
+	err = database.ToggleSessionCategory(id, category)
 	if err != nil {
 		return err
 	}
