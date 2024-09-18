@@ -29,6 +29,10 @@ services:
       - 6379
     networks:
       - supermarkethelper
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
 networks:
   supermarkethelper:
     name: 'supermarkethelper'

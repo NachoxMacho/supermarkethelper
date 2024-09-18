@@ -2,113 +2,90 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"log/slog"
 	"math"
 	"net/http"
-	"net/url"
 	"slices"
-	"sort"
-	"strconv"
-	"strings"
 
 	"github.com/NachoxMacho/supermarkethelper/database"
 	"github.com/NachoxMacho/supermarkethelper/types"
 	"github.com/NachoxMacho/supermarkethelper/views/home"
 )
 
-func GetProducts(w http.ResponseWriter, r *http.Request) error {
-
-	products, err := database.GetAllProducts()
-	if err != nil {
-		return err
-	}
-
-	orderPathValue := r.URL.Query().Get("order")
-	descendingOrder := orderPathValue == "desc"
-	sortType := r.URL.Query().Get("sort")
-	if sortType == "" {
-		sortType = "id"
-	}
-
-	fmt.Println("descendingOrder", descendingOrder, "sortType", sortType)
-
-	switch sortType {
-	case "id":
-		sort.SliceStable(products, func(i, j int) bool {
-			return products[i].ID > products[j].ID != descendingOrder
-		})
-	case "name":
-		sort.SliceStable(products, func(i, j int) bool {
-			return strings.ToLower(products[i].Name) > strings.ToLower(products[j].Name) != descendingOrder
-		})
-	case "category":
-		sort.SliceStable(products, func(i, j int) bool {
-			return strings.ToLower(products[i].Category) > strings.ToLower(products[j].Category) != descendingOrder
-		})
-	case "box_price":
-		sort.SliceStable(products, func(i, j int) bool {
-			return products[i].BoxPrice > products[j].BoxPrice != descendingOrder
-		})
-	case "price_per_item":
-		sort.SliceStable(products, func(i, j int) bool {
-			return GetMarketPrice(products[i]) > GetMarketPrice(products[j]) != descendingOrder
-		})
-	case "items_per_box":
-		sort.SliceStable(products, func(i, j int) bool {
-			return products[i].ItemsPerBox > products[j].ItemsPerBox != descendingOrder
-		})
-	case "boxes_per_shelf":
-		sort.SliceStable(products, func(i, j int) bool {
-			return GetBoxesPerShelf(products[i]) > GetBoxesPerShelf(products[j]) != descendingOrder
-		})
-	case "items_per_shelf":
-		sort.SliceStable(products, func(i, j int) bool {
-			return products[i].ItemsPerShelf > products[j].ItemsPerShelf != descendingOrder
-		})
-	case "shelves_in_store":
-		sort.SliceStable(products, func(i, j int) bool {
-			return products[i].ShelvesInStore > products[j].ShelvesInStore != descendingOrder
-		})
-	case "stocked_amount":
-		sort.SliceStable(products, func(i, j int) bool {
-			return GetTotalInventory(products[i]) > GetTotalInventory(products[j]) != descendingOrder
-		})
-	case "sale_price":
-		sort.SliceStable(products, func(i, j int) bool {
-			return GetSalePrice(products[i]) > GetSalePrice(products[j]) != descendingOrder
-		})
-	}
-
-	formattedProducts := make([]types.ProductItemOutput, len(products))
-
-	for i, p := range products {
-		if p.ID == 0 {
-			continue
-		}
-		formattedProducts[i] = FormatProduct(p)
-	}
-
-	return home.Index(formattedProducts, GetCategories(products), descendingOrder, sortType).Render(context.TODO(), w)
-}
-
-func GetLargestID() int {
-	products, err := database.GetAllProducts()
-	if err != nil {
-		return -1
-	}
-	largest := 0
-	for _, p := range products {
-		if p.ID > largest {
-			largest = p.ID
-		}
-	}
-	return largest
-}
-
+// func GetProducts(w http.ResponseWriter, r *http.Request) error {
+//
+//		products, err := database.GetProducts()
+//		if err != nil {
+//			return err
+//		}
+//
+//		orderPathValue := r.URL.Query().Get("order")
+//		descendingOrder := orderPathValue == "desc"
+//		sortType := r.URL.Query().Get("sort")
+//		if sortType == "" {
+//			sortType = "id"
+//		}
+//
+//		fmt.Println("descendingOrder", descendingOrder, "sortType", sortType)
+//
+//		switch sortType {
+//		case "id":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return products[i].ID > products[j].ID != descendingOrder
+//			})
+//		case "name":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return strings.ToLower(products[i].Name) > strings.ToLower(products[j].Name) != descendingOrder
+//			})
+//		case "category":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return strings.ToLower(products[i].Category) > strings.ToLower(products[j].Category) != descendingOrder
+//			})
+//		case "box_price":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return products[i].BoxPrice > products[j].BoxPrice != descendingOrder
+//			})
+//		case "price_per_item":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return GetMarketPrice(products[i]) > GetMarketPrice(products[j]) != descendingOrder
+//			})
+//		case "items_per_box":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return products[i].ItemsPerBox > products[j].ItemsPerBox != descendingOrder
+//			})
+//		case "boxes_per_shelf":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return GetBoxesPerShelf(products[i]) > GetBoxesPerShelf(products[j]) != descendingOrder
+//			})
+//		case "items_per_shelf":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return products[i].ItemsPerShelf > products[j].ItemsPerShelf != descendingOrder
+//			})
+//		case "shelves_in_store":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return products[i].ShelvesInStore > products[j].ShelvesInStore != descendingOrder
+//			})
+//		case "stocked_amount":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return GetTotalInventory(products[i]) > GetTotalInventory(products[j]) != descendingOrder
+//			})
+//		case "sale_price":
+//			sort.SliceStable(products, func(i, j int) bool {
+//				return GetSalePrice(products[i]) > GetSalePrice(products[j]) != descendingOrder
+//			})
+//		}
+//
+//		formattedProducts := make([]types.ProductItemOutput, len(products))
+//
+//		for i, p := range products {
+//			if p.ID == 0 {
+//				continue
+//			}
+//			formattedProducts[i] = FormatProduct(p)
+//		}
+//
+//		return home.Index(formattedProducts, GetCategories(products), descendingOrder, sortType).Render(context.TODO(), w)
+//	}
 func GetBoxesPerShelf(p types.ProductItem) float64 {
 	return float64(p.ItemsPerShelf) / float64(p.ItemsPerBox)
 }
@@ -143,302 +120,6 @@ func GetCategories(products []types.ProductItem) []string {
 	}
 
 	return categories
-}
-
-func AddProduct(w http.ResponseWriter, r *http.Request) error {
-
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		return err
-	}
-
-	defer r.Body.Close()
-
-	slog.Debug("recieved product to add", slog.String("body", string(bodyBytes)))
-
-	newProduct := types.ProductItem{}
-
-	switch r.Header.Get("Content-Type") {
-	case "application/x-www-form-urlencoded":
-		u, err := url.ParseQuery(string(bodyBytes))
-		if err != nil {
-			return err
-		}
-
-		if u.Get("box_price") != "" {
-			boxPrice, err := strconv.ParseFloat(u.Get("box_price"), 64)
-			if err != nil {
-				return err
-			}
-			newProduct.BoxPrice = boxPrice
-		}
-
-		if u.Get("items_per_shelf") != "" {
-			itemsPerShelf, err := strconv.Atoi(u.Get("items_per_shelf"))
-			if err != nil {
-				return err
-			}
-			newProduct.ItemsPerShelf = itemsPerShelf
-		}
-
-		if u.Get("items_per_box") != "" {
-			itemsPerBox, err := strconv.Atoi(u.Get("items_per_box"))
-			if err != nil {
-				return err
-			}
-			newProduct.ItemsPerBox = itemsPerBox
-		}
-
-		if u.Get("shelves_in_store") != "" {
-			shelvesInStore, err := strconv.Atoi(u.Get("shelves_in_store"))
-			if err != nil {
-				return err
-			}
-			newProduct.ShelvesInStore = shelvesInStore
-		}
-		newProduct.Name = u.Get("name")
-		newProduct.Category = u.Get("category")
-	case "application/json":
-		err = json.Unmarshal(bodyBytes, &newProduct)
-		if err != nil {
-			return err
-		}
-	}
-
-	if newProduct.ID == 0 {
-		newProduct.ID = GetLargestID() + 1
-	}
-
-	products, err := database.GetAllProducts()
-	if err != nil {
-		return err
-	}
-
-	for _, p := range products {
-		fmt.Println("comparing", p.ID, "==", newProduct.ID)
-		if p.ID == newProduct.ID {
-			w.WriteHeader(400)
-			return fmt.Errorf("item already exists with ID: %d", p.ID)
-		}
-	}
-
-	err = database.AddProduct(newProduct)
-	if err != nil {
-		return err
-	}
-	products = append(products, newProduct)
-
-	formattedProducts := make([]types.ProductItemOutput, len(products))
-
-	for i, p := range products {
-		if p.ID == 0 {
-			continue
-		}
-		formattedProducts[i] = FormatProduct(p)
-	}
-
-	return home.Index(formattedProducts, GetCategories(products), false, "id").Render(context.TODO(), w)
-}
-
-func ModifyProduct(w http.ResponseWriter, r *http.Request) error {
-
-	pathID := r.PathValue("id")
-	if pathID == "" {
-		return errors.New("id missing in path")
-	}
-	id, err := strconv.Atoi(pathID)
-	if err != nil {
-		return err
-	}
-
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		return err
-	}
-
-	defer r.Body.Close()
-
-	slog.Debug("recieved product to modify", slog.String("body", string(bodyBytes)))
-
-	incomingProduct := types.ProductItem{}
-
-	switch r.Header.Get("Content-Type") {
-	case "application/x-www-form-urlencoded":
-		u, err := url.ParseQuery(string(bodyBytes))
-		if err != nil {
-			return err
-		}
-
-		if u.Get("box_price") != "" {
-			boxPrice, err := strconv.ParseFloat(u.Get("box_price"), 64)
-			if err != nil {
-				return err
-			}
-			incomingProduct.BoxPrice = boxPrice
-		}
-
-		if u.Get("items_per_shelf") != "" {
-			itemsPerShelf, err := strconv.Atoi(u.Get("items_per_shelf"))
-			if err != nil {
-				return err
-			}
-			incomingProduct.ItemsPerShelf = itemsPerShelf
-		}
-
-		if u.Get("items_per_box") != "" {
-			itemsPerBox, err := strconv.Atoi(u.Get("items_per_box"))
-			if err != nil {
-				return err
-			}
-			incomingProduct.ItemsPerBox = itemsPerBox
-		}
-
-		if u.Get("shelves_in_store") != "" {
-			shelvesInStore, err := strconv.Atoi(u.Get("shelves_in_store"))
-			if err != nil {
-				return err
-			}
-			incomingProduct.ShelvesInStore = shelvesInStore
-		}
-		incomingProduct.Name = u.Get("name")
-		incomingProduct.Category = u.Get("category")
-	case "application/json":
-		err = json.Unmarshal(bodyBytes, &incomingProduct)
-		if err != nil {
-			return err
-		}
-	}
-
-	incomingProduct.ID = id
-
-	fmt.Println("Merging Objects")
-	products, err := database.GetAllProducts()
-	if err != nil {
-		return err
-	}
-
-	for _, p := range products {
-		fmt.Println("comparing", p.ID, "==", incomingProduct.ID)
-		if p.ID == incomingProduct.ID {
-			incomingProduct = MergeProducts(p, incomingProduct)
-			break
-		}
-	}
-
-	fmt.Println("Modifying Product to Database")
-
-	err = database.ModifyProduct(incomingProduct)
-	if err != nil {
-		w.WriteHeader(400)
-		return err
-	}
-	fmt.Println("Formatting")
-
-	fp := FormatProduct(incomingProduct)
-
-	return home.Row(fp, GetCategories(products)).Render(context.TODO(), w)
-}
-
-// This is the HTMX endpoint for the form
-func AddOrModifyProduct(w http.ResponseWriter, r *http.Request) error {
-
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		return err
-	}
-	defer r.Body.Close()
-
-	fmt.Println(string(bodyBytes))
-
-	incomingProduct := types.ProductItem{}
-
-	switch r.Header.Get("Content-Type") {
-	case "application/x-www-form-urlencoded":
-		u, err := url.ParseQuery(string(bodyBytes))
-		if err != nil {
-			return err
-		}
-
-		if u.Get("id") != "" {
-			id, err := strconv.Atoi(u.Get("id"))
-			if err != nil {
-				return err
-			}
-			incomingProduct.ID = id
-		}
-		if u.Get("box_price") != "" {
-			boxPrice, err := strconv.ParseFloat(u.Get("box_price"), 64)
-			if err != nil {
-				return err
-			}
-			incomingProduct.BoxPrice = boxPrice
-		}
-
-		if u.Get("items_per_shelf") != "" {
-			itemsPerShelf, err := strconv.Atoi(u.Get("items_per_shelf"))
-			if err != nil {
-				return err
-			}
-			incomingProduct.ItemsPerShelf = itemsPerShelf
-		}
-
-		if u.Get("items_per_box") != "" {
-			itemsPerBox, err := strconv.Atoi(u.Get("items_per_box"))
-			if err != nil {
-				return err
-			}
-			incomingProduct.ItemsPerBox = itemsPerBox
-		}
-
-		if u.Get("shelves_in_store") != "" {
-			shelvesInStore, err := strconv.Atoi(u.Get("shelves_in_store"))
-			if err != nil {
-				return err
-			}
-			incomingProduct.ShelvesInStore = shelvesInStore
-		}
-		incomingProduct.Name = u.Get("name")
-		incomingProduct.Category = u.Get("category")
-	}
-
-	fmt.Printf("Created Object %v\n", incomingProduct)
-
-	products, err := database.GetAllProducts()
-	if err != nil {
-		return err
-	}
-
-	found := false
-
-	for i, p := range products {
-		if p.ID == incomingProduct.ID {
-			incomingProduct = MergeProducts(p, incomingProduct)
-			fmt.Printf("Modifying Object %v\n", incomingProduct)
-			database.ModifyProduct(incomingProduct)
-			products[i] = incomingProduct
-			found = true
-			break
-		}
-	}
-
-	if !found && incomingProduct.ID != 0 {
-		err = database.AddProduct(incomingProduct)
-		if err != nil {
-			return err
-		}
-		products = append(products, incomingProduct)
-	}
-
-	formattedProducts := make([]types.ProductItemOutput, len(products))
-
-	for i, p := range products {
-		if p.ID == 0 {
-			continue
-		}
-		formattedProducts[i] = FormatProduct(p)
-	}
-
-	return home.Index(formattedProducts, GetCategories(products), false, "id").Render(context.TODO(), w)
 }
 
 func MergeProducts(base types.ProductItem, override types.ProductItem) types.ProductItem {
@@ -486,23 +167,127 @@ func FormatProduct(p types.ProductItem) types.ProductItemOutput {
 
 	return fp
 }
+
+func GetCategoryNames() ([]string, error) {
+	categories, err := database.GetCategories()
+	if err != nil {
+		return nil, err
+	}
+	list := make([]string, 0, len(categories))
+	for _, c := range categories {
+		list = append(list, c.Name)
+	}
+	return list, nil
+}
+
 func Homepage(w http.ResponseWriter, r *http.Request) error {
 
-	products, err := database.GetAllProducts()
+	// TODO: make this work
+	id := r.PathValue("id")
+	if id == "" {
+		session, err := database.AddSession()
+		if err != nil {
+			return err
+		}
+		http.Redirect(w, r, fmt.Sprintf("/%s", session.ID), http.StatusTemporaryRedirect)
+		return nil
+	}
+
+	// Should fetch session id from database, but technically not needed at the moment
+
+	products, err := database.GetProducts()
 	if err != nil {
 		return err
 	}
 
-	formattedProducts := make([]types.ProductItemOutput, len(products))
+	categories, err := database.GetCategories()
+	if err != nil {
+		return err
+	}
 
-	for i, p := range products {
+	productSpecifics, err := database.GetSessionProductSpecifics()
+	if err != nil {
+		return err
+	}
+
+	sessionCategories, err := database.GetSessionCategories()
+	if err != nil {
+		return err
+	}
+	enabledCategoryIDs := make([]int, 0, len(categories))
+	for _, c := range sessionCategories {
+		if c.SessionID == id {
+			enabledCategoryIDs = append(enabledCategoryIDs, c.CategoryID)
+		}
+	}
+
+	formattedProducts := make([]types.ProductItemOutput, 0, len(products))
+
+	for _, p := range products {
 		if p.ID == 0 {
 			continue
 		}
-		formattedProducts[i] = FormatProduct(p)
+
+		if slices.Contains(enabledCategoryIDs, p.CategoryID) {
+
+			category := ""
+			specifics := database.SessionProductSpecific{}
+			for _, c := range categories {
+				if c.ID == p.CategoryID {
+					category = c.Name
+					break
+				}
+			}
+
+			for _, s := range productSpecifics {
+				if s.ProductID == p.ID && s.SessionID == id {
+					specifics = s
+					break
+				}
+			}
+
+			newProduct := types.ProductItem{
+				ID:             p.ID,
+				Category:       category,
+				Name:           p.Name,
+				ItemsPerBox:    p.ItemsPerBox,
+				ItemsPerShelf:  p.ItemsPerShelf,
+				BoxPrice:       specifics.BoxPrice,
+				ShelvesInStore: specifics.ShelvesInStore,
+			}
+			formattedProducts = append(formattedProducts, FormatProduct(newProduct))
+		}
+		// formattedProducts[i] = FormatProduct(p)
 	}
 
 	fmt.Println("Rendering")
+	list, err := GetCategoryNames()
+	if err != nil {
+		return err
+	}
 
-	return home.Index(formattedProducts, GetCategories(products), false, "id").Render(context.TODO(), w)
+
+	return home.Index(formattedProducts, list, false, "id").Render(context.TODO(), w)
+}
+
+func SessionCategory(w http.ResponseWriter, r *http.Request) error {
+
+	id := r.PathValue("id")
+	if id == "" {
+		return fmt.Errorf("missing id: %s", r.URL.Path)
+	}
+
+	category := r.PathValue("category")
+	if category == "" {
+		return fmt.Errorf("missing category: %s", r.URL.Path)
+	}
+
+	fmt.Println("Adding category", category, "to", id)
+
+	err := database.AddSessionCategory(id, category)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

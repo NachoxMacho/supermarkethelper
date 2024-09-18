@@ -47,10 +47,12 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /public/*", http.StripPrefix("/", http.FileServerFS(FS)))
+	mux.HandleFunc("GET /{id}", ErrorHandler(Homepage))
 	mux.HandleFunc("GET /", ErrorHandler(Homepage))
-	mux.HandleFunc("GET /products", ErrorHandler(GetProducts))
+	mux.HandleFunc("PUT /{id}/{category}", ErrorHandler(SessionCategory))
+	// mux.HandleFunc("GET /products", ErrorHandler(GetProducts))
 	// mux.HandleFunc("POST /products/:id", ErrorHandler(AddProduct))
-	mux.HandleFunc("PUT /products/{id}/", ErrorHandler(ModifyProduct))
-	mux.HandleFunc("POST /products", ErrorHandler(AddProduct))
+	// mux.HandleFunc("PUT /products/{id}/", ErrorHandler(ModifyProduct))
+	// mux.HandleFunc("POST /products", ErrorHandler(AddProduct))
 	http.ListenAndServe(":42069", mux)
 }
