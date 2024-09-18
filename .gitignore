@@ -31,11 +31,9 @@ tmp/*
 **_templ.go
 
 # database ignore
-*.sqlite.db
+*.db
 
 # generated styles.css
 public/styles.css
 
 node_modules/*
-
-*.sqlite.db
