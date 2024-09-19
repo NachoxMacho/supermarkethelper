@@ -29,17 +29,6 @@ templ Table(id string, data []types.ProductItemOutput, categories []types.Catego
     <table id="product-table" class="text-left w-9/12">
         <thead>
             <th
-                if descending || sortType != "name" {
-                    hx-get="/products?name=id&order=asc"
-                } else {
-                    hx-get="/products?name=id&order=desc"
-                }
-                hx-swap="outerHTML"
-                hx-target="#product-table"
-                hx-trigger="click"
-                hx-select="#product-table"
-            >Name</th>
-            <th
                 if descending || sortType != "category" {
                     hx-get="/products?sort=category&order=asc"
                 } else {
@@ -50,6 +39,17 @@ templ Table(id string, data []types.ProductItemOutput, categories []types.Catego
                 hx-trigger="click"
                 hx-select="#product-table"
             >Category</th>
+            <th
+                if descending || sortType != "name" {
+                    hx-get="/products?name=id&order=asc"
+                } else {
+                    hx-get="/products?name=id&order=desc"
+                }
+                hx-swap="outerHTML"
+                hx-target="#product-table"
+                hx-trigger="click"
+                hx-select="#product-table"
+            >Name</th>
             <th
                 if descending || sortType != "box_price" {
                     hx-get="/products?sort=box_price&order=asc"
@@ -82,7 +82,7 @@ templ Table(id string, data []types.ProductItemOutput, categories []types.Catego
                 hx-target="#product-table"
                 hx-trigger="click"
                 hx-select="#product-table"
-            >Price Per Item</th>
+            >Market Price</th>
             <th
                 if descending || sortType != "boxes_per_shelf" {
                     hx-get="/products?sort=boxes_per_shelf&order=asc"
@@ -153,15 +153,16 @@ templ CategoryToggle(session string, c types.CategoryToggleOutput) {
         checked
     }
     />
+    <br>
 }
 
 templ Row(session string, p types.ProductItemOutput, categories []types.CategoryToggleOutput) {
 	<tr id={ fmt.Sprintf("row%s", p.ID) } class="border-b">
 		<td>
-            { p.Name }
+            { p.Category }
 		</td>
 		<td>
-            { p.Category }
+            { p.Name }
 		</td>
 		<td>
 			<input
