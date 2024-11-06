@@ -1,0 +1,11 @@
+docker-compose.yaml
+Dockerfile
+readme.md
+.dockerignore
+.gitignore
+.git
+prometheus.yaml
+grafana-datasources.yaml
+tempo-data
+tempo.yaml
+
