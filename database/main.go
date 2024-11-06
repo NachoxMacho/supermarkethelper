@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"embed"
 	"log"
 	"log/slog"
 
@@ -10,8 +11,12 @@ import (
 
 	// We don't use any of the functions in these, they are just providers
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "modernc.org/sqlite"
 )
+
+//go:embed migrations/*.sql
+var migrations embed.FS
 
 
 func Initialize(driverName string, path string) error {
@@ -35,7 +40,13 @@ func Initialize(driverName string, path string) error {
 		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://migrations", "sqlite", driver)
+	source, err := iofs.New(migrations, "migrations")
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithInstance("iofs", source, "sqlite", driver)
+	// m, err := migrate.NewWithDatabaseInstance("file://migrations", "sqlite", driver)
 	if err != nil {
 		return err
 	}
