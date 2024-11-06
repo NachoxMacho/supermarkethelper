@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"io"
+	"log/slog"
 	"math"
 	"net/http"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/NachoxMacho/supermarkethelper/database"
+	"github.com/NachoxMacho/supermarkethelper/internal/traces"
 	"github.com/NachoxMacho/supermarkethelper/types"
 	"github.com/NachoxMacho/supermarkethelper/views/home"
 )
@@ -90,8 +92,12 @@ func FormatProduct(p types.ProductItem) types.ProductItemOutput {
 	return fp
 }
 
-func GetCategoryNames() ([]types.CategoryToggleOutput, error) {
-	categories, err := database.GetCategories()
+func GetCategoryNames(ctx context.Context) ([]types.CategoryToggleOutput, error) {
+
+	ctx, span := traces.SetupSpan(ctx)
+	defer span.End()
+
+	categories, err := database.GetCategories(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +110,10 @@ func GetCategoryNames() ([]types.CategoryToggleOutput, error) {
 
 func Homepage(w http.ResponseWriter, r *http.Request) error {
 
-	// TODO: make this work
+	ctx := r.Context()
+	ctx, span := traces.SetupSpan(ctx)
+	defer span.End()
+
 	id := r.PathValue("id")
 	if id == "" {
 		session, err := database.AddSession()
@@ -117,12 +126,12 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 
 	// Should fetch session id from database, but technically not needed at the moment
 
-	products, err := database.GetProducts()
+	products, err := database.GetProducts(ctx)
 	if err != nil {
 		return err
 	}
 
-	categories, err := database.GetCategories()
+	categories, err := database.GetCategories(ctx)
 	if err != nil {
 		return err
 	}
@@ -132,12 +141,12 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 		categoryMap[c.ID] = c
 	}
 
-	productSpecifics, err := database.GetSessionProductSpecifics()
+	productSpecifics, err := database.GetSessionProductSpecifics(ctx)
 	if err != nil {
 		return err
 	}
 
-	sessionCategories, err := database.GetSessionCategories()
+	sessionCategories, err := database.GetSessionCategories(ctx)
 	if err != nil {
 		return err
 	}
@@ -145,7 +154,7 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 
 	for _, c := range sessionCategories {
 		if c.SessionID == id {
-			enabledCategories = append(enabledCategories, categoryMap[c.CategoryID] )
+			enabledCategories = append(enabledCategories, categoryMap[c.CategoryID])
 		}
 	}
 
@@ -156,46 +165,46 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 			continue
 		}
 
-		if slices.ContainsFunc(enabledCategories, func(c database.Category) bool { return c.ID == p.CategoryID }) {
-
-			category := ""
-			specifics := database.SessionProductSpecific{}
-			for _, c := range categories {
-				if c.ID == p.CategoryID {
-					category = c.Name
-					break
-				}
-			}
-
-			for _, s := range productSpecifics {
-				if s.ProductID == p.ID && s.SessionID == id {
-					specifics = s
-					break
-				}
-			}
-
-			newProduct := types.ProductItem{
-				ID:             p.ID,
-				Category:       category,
-				Name:           p.Name,
-				ItemsPerBox:    p.ItemsPerBox,
-				ItemsPerShelf:  p.ItemsPerShelf,
-				BoxPrice:       specifics.BoxPrice,
-				ShelvesInStore: specifics.ShelvesInStore,
-			}
-
-			if newProduct.BoxPrice == 0 {
-				newProduct.BoxPrice = p.DefaultBoxPrice
-			}
-			if newProduct.ShelvesInStore == 0 {
-				newProduct.ShelvesInStore = p.DefaultShelvesInStore
-			}
-			formattedProducts = append(formattedProducts, FormatProduct(newProduct))
+		if !slices.ContainsFunc(enabledCategories, func(c database.Category) bool { return c.ID == p.CategoryID }) {
+			continue
 		}
-		// formattedProducts[i] = FormatProduct(p)
+
+		category := ""
+		specifics := database.SessionProductSpecific{}
+		for _, c := range categories {
+			if c.ID == p.CategoryID {
+				category = c.Name
+				break
+			}
+		}
+
+		for _, s := range productSpecifics {
+			if s.ProductID == p.ID && s.SessionID == id {
+				specifics = s
+				break
+			}
+		}
+
+		newProduct := types.ProductItem{
+			ID:             p.ID,
+			Category:       category,
+			Name:           p.Name,
+			ItemsPerBox:    p.ItemsPerBox,
+			ItemsPerShelf:  p.ItemsPerShelf,
+			BoxPrice:       specifics.BoxPrice,
+			ShelvesInStore: specifics.ShelvesInStore,
+		}
+
+		if newProduct.BoxPrice == 0 {
+			newProduct.BoxPrice = p.DefaultBoxPrice
+		}
+		if newProduct.ShelvesInStore == 0 {
+			newProduct.ShelvesInStore = p.DefaultShelvesInStore
+		}
+		formattedProducts = append(formattedProducts, FormatProduct(newProduct))
 	}
 
-	list, err := GetCategoryNames()
+	list, err := GetCategoryNames(ctx)
 	if err != nil {
 		return err
 	}
@@ -208,33 +217,44 @@ func Homepage(w http.ResponseWriter, r *http.Request) error {
 	return home.Index(id, formattedProducts, list, false, "id").Render(context.TODO(), w)
 }
 
-func SessionCategory(w http.ResponseWriter, r *http.Request) error {
+func SessionCategory(db *sql.DB, logger slog.Logger) func(http.ResponseWriter, *http.Request) error {
+	return func(w http.ResponseWriter, r *http.Request) error {
 
-	id := r.PathValue("id")
-	if id == "" {
-		return fmt.Errorf("missing id: %s", r.URL.Path)
+		ctx := r.Context()
+		ctx, span := traces.SetupSpan(ctx)
+		defer span.End()
+
+		id := r.PathValue("id")
+		if id == "" {
+			return fmt.Errorf("missing id: %s", r.URL.Path)
+		}
+
+		category := r.PathValue("category")
+		if category == "" {
+			return fmt.Errorf("missing category: %s", r.URL.Path)
+		}
+		category, err := url.QueryUnescape(category)
+		if err != nil {
+			return fmt.Errorf("failed to unescape category: %w", err)
+		}
+
+		// logger.Info("Adding category", category, "to", id)
+
+		err = database.ToggleSessionCategory(id, category, ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
-
-	category := r.PathValue("category")
-	if category == "" {
-		return fmt.Errorf("missing category: %s", r.URL.Path)
-	}
-	category, err := url.QueryUnescape(category)
-	if err != nil {
-		return fmt.Errorf("failed to unescape category: %w", err)
-	}
-
-	fmt.Println("Adding category", category, "to", id)
-
-	err = database.ToggleSessionCategory(id, category)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func SetProductSpecific(w http.ResponseWriter, r *http.Request) error {
+
+	ctx := r.Context()
+	ctx, span := traces.SetupSpan(ctx)
+	defer span.End()
+
 	id := r.PathValue("id")
 	if id == "" {
 		return fmt.Errorf("missing id: %s", r.URL.Path)
@@ -244,54 +264,39 @@ func SetProductSpecific(w http.ResponseWriter, r *http.Request) error {
 	if product == "" {
 		return fmt.Errorf("missing product: %s", r.URL.Path)
 	}
+
 	productID, err := strconv.Atoi(product)
 	if err != nil {
 		return err
 	}
 
-	bodyBytes, err := io.ReadAll(r.Body)
+	err = r.ParseForm()
 	if err != nil {
 		return err
 	}
-	defer r.Body.Close()
 
-	var boxPrice float64
-	var shelvesInStore int
-	switch r.Header.Get("Content-Type") {
-	case "application/x-www-form-urlencoded":
-		u, err := url.ParseQuery(string(bodyBytes))
+	boxPrice := 0.0
+	shelvesInStore := 0
+
+	if boxPriceInput := r.PostForm.Get("box_price"); boxPriceInput != "" {
+		boxPrice, err = strconv.ParseFloat(boxPriceInput, 64)
 		if err != nil {
 			return err
 		}
-
-		if u.Get("box_price") != "" {
-			boxPrice, err = strconv.ParseFloat(u.Get("box_price"), 64)
-			if err != nil {
-				return err
-			}
-		}
-
-		if u.Get("shelves_in_store") != "" {
-			shelvesInStore, err = strconv.Atoi(u.Get("shelves_in_store"))
-			if err != nil {
-				return err
-			}
-		}
-	// case "application/json":
-	// 	err = json.Unmarshal(bodyBytes, &incomingProduct)
-	// 	if err != nil {
-	// 		return err
-	// 	}
 	}
 
+	if shelvesInStoreInput := r.PostForm.Get("box_price"); shelvesInStoreInput != "" {
+		shelvesInStore, err = strconv.Atoi(shelvesInStoreInput)
+		if err != nil {
+			return err
+		}
+	}
 
-	// boxPrice := r.URL.Query().Get("box_price")
-	// shelvesInStore := r.URL.Query().Get("shelves_in_store")
 	if shelvesInStore == 0 && boxPrice == 0 {
 		return nil
 	}
 
-	err = database.SetProductSpecific(id, productID, fmt.Sprintf("%.2f", boxPrice), fmt.Sprintf("%d", shelvesInStore))
+	err = database.SetProductSpecific(id, productID, fmt.Sprintf("%.2f", boxPrice), fmt.Sprintf("%d", shelvesInStore), ctx)
 	if err != nil {
 		return err
 	}

@@ -1,11 +1,17 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"slices"
+
+	"github.com/NachoxMacho/supermarkethelper/internal/traces"
 )
 
-func GetSessionProductSpecifics() ([]SessionProductSpecific, error) {
+func GetSessionProductSpecifics(ctx context.Context) ([]SessionProductSpecific, error) {
+
+	_, span := traces.SetupSpan(ctx)
+	defer span.End()
 	db := ConnectDB()
 
 	rows, err := db.Query("select product_id, session_id, box_price, shelves_in_store from session_product_specifics;")
@@ -32,9 +38,12 @@ func GetSessionProductSpecifics() ([]SessionProductSpecific, error) {
 	return sessionCategories, nil
 }
 
-func SetProductSpecific(sessionID string, productID int, boxPrice string, shelvesInStore string) error {
+func SetProductSpecific(sessionID string, productID int, boxPrice string, shelvesInStore string, ctx context.Context) error {
 
-	sessionProductSpecifics, err := GetSessionProductSpecifics()
+	ctx, span := traces.SetupSpan(ctx)
+	defer span.End()
+
+	sessionProductSpecifics, err := GetSessionProductSpecifics(ctx)
 	if err != nil {
 		return err
 	}

@@ -1,12 +1,19 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/NachoxMacho/supermarkethelper/internal/traces"
 )
 
-func GetSessionCategories() ([]SessionCategory, error) {
+func GetSessionCategories(ctx context.Context) ([]SessionCategory, error) {
+
+	_, span := traces.SetupSpan(ctx)
+	defer span.End()
+
 	db := ConnectDB()
 
 	rows, err := db.Query("select session_id, category_id from session_categories;")
@@ -33,8 +40,12 @@ func GetSessionCategories() ([]SessionCategory, error) {
 	return sessionCategories, nil
 }
 
-func ToggleSessionCategory(sessionID string, category string) error {
-	categories, err := GetCategories()
+func ToggleSessionCategory(sessionID string, category string, ctx context.Context) error {
+
+	ctx, span := traces.SetupSpan(ctx)
+	defer span.End()
+
+	categories, err := GetCategories(ctx)
 	if err != nil {
 		return err
 	}
@@ -45,7 +56,7 @@ func ToggleSessionCategory(sessionID string, category string) error {
 		}
 	}
 
-	sessionCategories, err := GetSessionCategories()
+	sessionCategories, err := GetSessionCategories(ctx)
 	if err != nil {
 		return err
 	}
